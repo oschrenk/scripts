@@ -1,5 +1,7 @@
 #! /bin/sh
 
+# Inspired by blogpost from http://www-public.it-sudparis.eu/~berger_o/weblog/2008/05/30/offline-backup-mediawiki-with-httrack/
+
 site=wiki.host.tld
 topurl=http://$site
 
@@ -11,7 +13,7 @@ httrack -%i -w $topurl/index.php/Special:Allpages \
 -%s -x -%x -%u \
 "-$site/index.php/Special:*" \
 "-$site/index.php?title=Special:*" \
-"+$site/index.php/Special:Recenthanges" \
+"+$site/index.php/Special:RecentChanges" \
 "+*.css" \
 "-$site/index.php?title=*&oldid=*" \
 "-$site/index.php?title=*&action=edit" \
