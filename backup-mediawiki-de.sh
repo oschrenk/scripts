@@ -12,16 +12,12 @@ httrack -%i -w $topurl/Spezial:Alle_Seiten \
 -F "Mozilla/4.5 (compatible; HTTrack 3.0x; Windows 98)" \
 -%s -x -%x -%u \
 "-$site/Spezial:*" \
-"-$site/index.php?title=Spezial:*" \
 "+$site/Spezial:Letzte_Änderungen" \
-"+*.css" \
-"-$site/index.php?title=*&oldid=*" \
-"-$site/index.php?title=*&action=edit" \
-"-$site/index.php?title=*&curid=*" \
-"+$site/index.php?title=*&action=history" \
-"-$site/index.php?title=*&action=history&*" \
-"-$site/index.php?title=*&curid=*&action=history*" \
-"-$site/index.php?title=*&limit=*&action=history"
+"-$site/index.php?*" \
+"-$site/Diskussion:*" \
+"-$site/Benutzer_*" \
+"-$site/Kategorie_Diskussion_*" \
+"+*.css" 
 
 for page in $(grep "link updated: $site/index.php/" $backupdir/hts-log.txt | sed "s,^.*link updated: $site/index.php/,," | sed ’s/ ->.*//’ | grep -v Spezial:)
 do
