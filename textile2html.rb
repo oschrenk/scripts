@@ -2,7 +2,6 @@
 #
 # Usage textile2html.rb file.textile > file.html
 
-
 require "rubygems"
 require "redcloth"
 
@@ -15,4 +14,4 @@ file_name = ARGV[0]
 document = IO.read(file_name)
 html = RedCloth.new(document).to_html
 
-puts eval("\"" + html + "\"")
+$stdout.write "#{html}"
