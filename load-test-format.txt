@@ -1,0 +1,3 @@
+\n
+%{url_effective}\t%{http_code}\t%{content_type}\t%{time_total}\t%{time_connect}\t%{time_namelookup}\t%{time_pretransfer}\t%{time_starttransfer}\t%{size_download}\n
+\n

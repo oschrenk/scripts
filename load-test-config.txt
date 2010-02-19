@@ -1,0 +1,12 @@
+# Change the user agent
+#--user-agent "Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.1.7) Gecko/20091221 Firefox/3.5.7"
+
+# Follow location
+--location
+
+-w @load-test-format.txt
+#---dump-header headers.txt
+
+-H "Pragma: no-cache"
+-H "Cache-control: no-cache"
+-H "Connection: close"
