@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby -w
 
+# Original version found on http://blog.bleything.net/pages/mateup
+
 ENV['LC_ALL']   = nil
 ENV['LC_CTYPE'] = 'en_US.UTF-8'
 
