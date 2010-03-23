@@ -13,7 +13,9 @@ bundles = {
   'Make' => 'textmate/make.tmbundle',
   'Markdown' => 'fletcher/markdown.tmbundle',
   'Git' => 'jcf/git-tmbundle',
-  'TODO' => 'textmate/todo.tmbundle' 
+  'TODO' => 'textmate/todo.tmbundle',
+  'Copy as RTF' => 'drnic/copy-as-rtf-tmbundle',
+  'Regexp' => 'danielvlopes/regexp-tmbundle'
 }
 
 # escape spaces and ampersands
@@ -22,7 +24,6 @@ def cleanup(str)
 end
 
 dir = "#{ENV['HOME']}/Library/Application\ Support/TextMate/Bundles"
-#dir = "#{ENV['HOME']}/Downloads/Test"
 begin
   Dir.chdir dir
 rescue Errno::ENOENT
@@ -43,7 +44,8 @@ Dir.entries('.').each do |e|
 
   if bundles.delete bundle_name
     puts "bundle exists, updating"
-    `cd #{cleanup e}; git pull origin master; cd ..`
+    `cd #{cleanup e}; git pull origin master; cd ..;`
+    
   else
     print "don't know about this bundle.  Delete it? [y/N] "
 
@@ -68,4 +70,4 @@ bundles.each do |name, source|
   puts "  * checked out #{$1}"
 end
 
-`osascript -e 'tell app "TextMate" to reload bundles'`
+`arch -i386 osascript -e 'tell app "TextMate" to reload bundles'`
