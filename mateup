@@ -8,14 +8,15 @@ ENV['LC_CTYPE'] = 'en_US.UTF-8'
 github_root = 'git://github.com'
 bundles = {
   'Ack' => 'protocool/ack-tmbundle',
-  'Mediawiki' => 'textmate/mediawiki.tmbundle',
-  'Textile' => 'textmate/textile.tmbundle',
+  'Ant' => 'textmate/ant.tmbundle',
+  'Copy as RTF' => 'drnic/copy-as-rtf-tmbundle',
+  'Git' => 'jcf/git-tmbundle',
   'Make' => 'textmate/make.tmbundle',
   'Markdown' => 'fletcher/markdown.tmbundle',
-  'Git' => 'jcf/git-tmbundle',
-  'TODO' => 'textmate/todo.tmbundle',
-  'Copy as RTF' => 'drnic/copy-as-rtf-tmbundle',
-  'Regexp' => 'danielvlopes/regexp-tmbundle'
+  'Mediawiki' => 'textmate/mediawiki.tmbundle',
+  'Regexp' => 'danielvlopes/regexp-tmbundle',
+  'Textile' => 'textmate/textile.tmbundle',
+  'TODO' => 'textmate/todo.tmbundle'
 }
 
 # escape spaces and ampersands
