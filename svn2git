@@ -1,25 +1,27 @@
 #! /bin/sh
 
 # prefix to the svn repository
-svnrepo=http://host/svn/
+repo=$1
 
-# take the name of the project from parameter
-project=$1
+# name of the final project
+project=$2
 
 # use local instead of global svn authorsfile
-authorsfile=~/.git-svn-local.authorsfile
+authorsfile=~/.git-svn.authorsfile
 
-rm -rf tmp
-mkdir tmp
-cd tmp
+rm -rf tmp-$project
+mkdir tmp-$project
+cd tmp-$project
 
-echo $svnrepo/$project/trunk/
+echo $repo
 
-git svn init $svnrepo/$project/trunk/ --no-metadata
+git svn init $repo --no-metadata
 git config svn.authorsfile $authorsfile
 git svn fetch
 
 
 cd ..
-git clone tmp $project
+git clone tmp-$project $project
+
+rm -rf $project-tmp
  
