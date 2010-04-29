@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby -w
 
+# Updates Textmate bundles using the Github repositories
+
 # Original version found on http://blog.bleything.net/pages/mateup
 
 ENV['LC_ALL']   = nil
