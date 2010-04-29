@@ -13,6 +13,7 @@ bundles = {
   'Git' => 'jcf/git-tmbundle',
   'Make' => 'textmate/make.tmbundle',
   'Markdown' => 'fletcher/markdown.tmbundle',
+  'Maven' => 'textmate/maven.tmbundle',
   'Mediawiki' => 'textmate/mediawiki.tmbundle',
   'Regexp' => 'danielvlopes/regexp-tmbundle',
   'Textile' => 'textmate/textile.tmbundle',
