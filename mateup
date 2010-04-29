@@ -31,7 +31,7 @@ rescue Errno::ENOENT
   puts "Bundles directory doesn't exist... creating it!"
   puts
   
-  `mkdir -p #{dir}`
+  `mkdir -p '#{dir}'`
   retry
 end
 
