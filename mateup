@@ -18,6 +18,7 @@ bundles = {
   'Markdown' => 'fletcher/markdown.tmbundle',
   'Maven' => 'textmate/maven.tmbundle',
   'Mediawiki' => 'textmate/mediawiki.tmbundle',
+  'PHP' => 'textmate/php.tmbundle',
   'Regexp' => 'danielvlopes/regexp-tmbundle',
   'Textile' => 'textmate/textile.tmbundle',
   'TODO' => 'textmate/todo.tmbundle'
