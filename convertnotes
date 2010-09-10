@@ -1,0 +1,17 @@
+#! /bin/sh
+
+for file in *.textile
+do
+	if [ -f $file ]
+		then
+			name=$file
+			mark=${name%.*}.markdown
+			temp=${name%.*}.temp
+			git mv $file $mark
+			textile2html.rb $mark | html2markdown.py > $temp
+			cat $temp > $mark
+			rm $temp
+  	fi
+done
+
+ 

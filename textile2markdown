@@ -1,0 +1,9 @@
+#! /bin/sh
+
+# You need in your PATH
+# - html2markdown.py (http://www.codefu.org/wiki/Main/Html2markdown) 
+# - textile2html (http://github.com/oschrenk/scripts/blob/master/textile2html.rb) 
+
+# Usage textile2markdown > output.markdown
+
+textile2html.rb $1 | html2markdown.py
