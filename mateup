@@ -20,6 +20,7 @@ bundles = {
   'Mediawiki' => 'textmate/mediawiki.tmbundle',
   'PHP' => 'textmate/php.tmbundle',
   'Regexp' => 'danielvlopes/regexp-tmbundle',
+  'Ruby' => 'drnic/ruby-tmbundle',
   'Textile' => 'textmate/textile.tmbundle',
   'TODO' => 'textmate/todo.tmbundle'
 }
