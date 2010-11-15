@@ -19,6 +19,7 @@ bundles = {
   'Maven' => 'textmate/maven.tmbundle',
   'Mediawiki' => 'textmate/mediawiki.tmbundle',
   'PHP' => 'textmate/php.tmbundle',
+  'Play' => 'oschrenk/play.tmbundle',
   'Regexp' => 'danielvlopes/regexp-tmbundle',
   'Ruby' => 'drnic/ruby-tmbundle',
   'Textile' => 'textmate/textile.tmbundle',
