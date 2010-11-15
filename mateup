@@ -22,7 +22,8 @@ bundles = {
   'Play' => 'oschrenk/play.tmbundle',
   'Regexp' => 'danielvlopes/regexp-tmbundle',
   'Ruby' => 'drnic/ruby-tmbundle',
-  'TODO' => 'textmate/todo.tmbundle'
+  'TODO' => 'textmate/todo.tmbundle',
+  'Yaml' => 'textmate/yaml.tmbundle'
 }
 
 # escape spaces and ampersands
