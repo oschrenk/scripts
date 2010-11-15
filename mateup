@@ -22,7 +22,6 @@ bundles = {
   'Play' => 'oschrenk/play.tmbundle',
   'Regexp' => 'danielvlopes/regexp-tmbundle',
   'Ruby' => 'drnic/ruby-tmbundle',
-  'Textile' => 'textmate/textile.tmbundle',
   'TODO' => 'textmate/todo.tmbundle'
 }
 
