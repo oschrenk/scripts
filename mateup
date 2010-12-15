@@ -12,17 +12,14 @@ bundles = {
   'Ant' => 'textmate/ant.tmbundle',
   'Copy as RTF' => 'drnic/copy-as-rtf-tmbundle',
   'Git' => 'jcf/git-tmbundle',
-  'GoTo' => 'amiel/gotofile.tmbundle',
   'Html5' => 'johnmuhl/html5.tmbundle',
   'Make' => 'textmate/make.tmbundle',
   'Markdown' => 'oschrenk/markdown.tmbundle',
   'Maven' => 'textmate/maven.tmbundle',
-  'Mediawiki' => 'textmate/mediawiki.tmbundle',
   'PHP' => 'textmate/php.tmbundle',
   'Play' => 'oschrenk/play.tmbundle',
   'Regexp' => 'danielvlopes/regexp-tmbundle',
   'Ruby' => 'drnic/ruby-tmbundle',
-  'TODO' => 'textmate/todo.tmbundle',
   'Yaml' => 'textmate/yaml.tmbundle'
 }
 
