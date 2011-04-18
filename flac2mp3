@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# flacmp3 - convert a flac file to mp3
+#
+if [ "$1" ]
+then
+  for file
+  do
+    if [ -e "$file" ]
+    then
+      flac -c -d "$file" | lame -h -m s -b 192 - "$(basename "$file" .flac).mp3"
+    else
+      echo >&2 "No such file: "$1""
+      exit 1
+    fi
+  done
+else
+  echo >&2 "Usage: "$(basename "$0")" INPUTFILE [...]"
+  exit 1
+fi
