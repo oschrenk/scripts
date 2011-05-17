@@ -10,6 +10,7 @@ ENV['LC_CTYPE'] = 'en_US.UTF-8'
 github_root = 'git://github.com'
 bundles = {
   'Ant' => 'textmate/ant.tmbundle',
+  'Apache' => 'textmate/apache.tmbundle',
   'Copy as RTF' => 'drnic/copy-as-rtf-tmbundle',
   'Git' => 'jcf/git-tmbundle',
   'Html5' => 'johnmuhl/html5.tmbundle',
