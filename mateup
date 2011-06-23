@@ -24,6 +24,7 @@ bundles = {
   'RDoc' => 'joshaven/RDoc.tmbundle',
   'Regexp' => 'danielvlopes/regexp-tmbundle',
   'Ruby' => 'drnic/ruby-tmbundle',
+  'Uncrustify' => 'oschrenk/Uncrustify.tmbundle',
   'Yaml' => 'textmate/yaml.tmbundle'
 }
 
