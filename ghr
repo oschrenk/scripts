@@ -1,6 +1,0 @@
-#!/bin/sh
-# Creates a repository on github, credentials are read from ~/.github
-
-API_TOKEN=`sed -n '/^api.token=/p'  ~/.github | sed 's/^api.token=//'`
-USERNAME=`sed -n '/^username=/p'  ~/.github | sed 's/^username=//'`
-curl -u "$USERNAME/token:$API_TOKEN" https://github.com/api/v2/yaml/repos/create -F name=$1
