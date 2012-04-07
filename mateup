@@ -54,7 +54,7 @@ Dir.entries('.').each do |e|
 
   if bundles.delete bundle_name
     puts "bundle exists, updating"
-    `cd #{cleanup e}; git pull origin master; cd ..;`
+    `cd #{cleanup e}; git pull --quiet origin master; cd ..;`
     
   else
     print "don't know about this bundle.  Delete it? [y/N] "
