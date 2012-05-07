@@ -9,7 +9,7 @@ ENV['LC_CTYPE'] = 'en_US.UTF-8'
 
 github_root = 'git://github.com'
 packages = {
-  'Theme - Monokai TimmFin' => 'timmfin/monokai-timmfin',
+  'Color Scheme - Monokai TimmFin' => 'timmfin/monokai-timmfin',
   'Theme - Soda' => 'buymeasoda/soda-theme'
 }
 
