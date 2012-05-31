@@ -10,7 +10,8 @@ ENV['LC_CTYPE'] = 'en_US.UTF-8'
 github_root = 'git://github.com'
 packages = {
   'Color Scheme - Monokai TimmFin' => 'timmfin/monokai-timmfin',
-  'Theme - Soda' => 'buymeasoda/soda-theme'
+  'Theme - Soda' => 'buymeasoda/soda-theme',
+  'JSHint' => 'uipoet/sublime-jshint'
 }
 
 # without these sublime probably won't work correctly
@@ -91,7 +92,7 @@ Dir.entries('.').each do |e|
         else
           print "Please enter 'y' or 'n': "
         end
-      end
+      
     end
   end
 end
