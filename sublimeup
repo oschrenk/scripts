@@ -10,7 +10,8 @@ ENV['LC_CTYPE'] = 'en_US.UTF-8'
 github_root = 'git://github.com'
 packages = {
   'Color Scheme - Monokai TimmFin' => 'timmfin/monokai-timmfin',
-  'Theme - Soda' => 'buymeasoda/soda-theme'
+  'Theme - Soda' => 'buymeasoda/soda-theme',
+  'JSHint' => 'uipoet/sublime-jshint'
 }
 
 # without these sublime probably won't work correctly
@@ -73,7 +74,6 @@ Dir.entries('.').each do |e|
     `cd #{cleanup e}; git pull --quiet origin master; cd ..;`
     
   else
-
     if corePackages.index(package_name)
       print "Ignoring core package\n"
     elsif providedPackages.index(package_name)
