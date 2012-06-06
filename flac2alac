@@ -1,0 +1,136 @@
+#!/bin/bash
+
+# flac2alac By Arlindo \"Nighto\" Pereira <nighto@nighto.net>
+# (C) 2010. Licensed on GPLv3"
+
+# modified by jeffrey paul <sneak@datavibe.net>
+
+# inspiration from http://ca.ubuntuforums.org/member.php?u=6176 (MetalMusicAddict)
+# script at http://ca.ubuntuforums.org/showthread.php?t=889700&page=2
+
+# this requires ImageMagick (for convert), mpeg4ip (for mp4tags),
+# recent flac (for metaflac with --export-picture-to), and
+# ffmpeg with alac (apple lossless) and flac support built in
+
+# no longer requires 'convert' as through testing i've found that
+# mp4tags does not require a png cover file as the manpage says
+# also iTunes 10.x will accept either embedded png or jpeg in an alac m4a
+
+function _convert_flac2alac {
+	
+	NF="`basename \"$1\" .flac`.m4a"
+	D="`dirname \"$1\"`"
+
+	flac -dc "$1" > "${D}/.flacdecode.${NF}.wav"
+
+	if [ $? -ne 0 ]; then
+		rm -f "${D}/.flacdecode.${NF}.wav"
+		echo "ERROR: corrupt or invalid flac file, exiting." > /dev/stderr
+		exit 1
+	fi
+
+	ARTIST="`metaflac --show-tag=ARTIST \"$1\" | perl -pe 's/ARTIST=//ig'`"
+	ALBUMARTIST="`metaflac --show-tag=ALBUMARTIST \"$1\" | perl -pe 's/ALBUMARTIST=//ig'`"
+	TITLE="`metaflac --show-tag=TITLE \"$1\" | perl -pe 's/TITLE=//ig'`"
+	ALBUM="`metaflac --show-tag=ALBUM \"$1\" | perl -pe 's/ALBUM=//ig'`"
+	DATE="`metaflac --show-tag=DATE \"$1\" | perl -pe 's/DATE=//ig'`"
+	GENRE="`metaflac --show-tag=GENRE \"$1\" | perl -pe 's/GENRE=//ig'`"
+	TRACKNUMBER="`metaflac --show-tag=TRACKNUMBER \"$1\" | perl -pe 's/TRACKNUMBER=//ig'`"
+	TRACKTOTAL="`metaflac --show-tag=TRACKTOTAL \"$1\" | perl -pe 's/TRACKTOTAL=//ig'`"
+	DISCNUMBER="`metaflac --show-tag=DISCNUMBER \"$1\" | perl -pe 's/DISCNUMBER=//ig'`"
+	DISCTOTAL="`metaflac --show-tag=DISCTOTAL \"$1\" | perl -pe 's/DISCTOTAL=//ig'`"
+	DESCRIPTION="`metaflac --show-tag=DESCRIPTION \"$1\" | perl -pe 's/DESCRIPTION=//ig'`"
+	COMPOSER="`metaflac --show-tag=COMPOSER \"$1\" | perl -pe 's/COMPOSER=//ig'`"
+	ARTFILE=".arttmp.${NF}"
+	# ARTFORMAT="`metaflac --export-picture-to=- \"$1\" | file -i -b - | awk '{split(\$1,arr,\";\"); print arr[1]}'`"
+	# 
+	# if [ $? -eq 0 ]; then
+	# 	
+	#	if [ "$ARTFORMAT" != "application/x-empty" ]; then
+	#		metaflac --export-picture-to="${D}/${ARTFILE}" "$1"
+	#		if [ "$ARTFORMAT" = "image/png" ]; then ARTEXT="png"; fi
+	#		if [ "$ARTFORMAT" = "image/jpeg" ]; then ARTEXT="jpg"; fi
+	#		if [ -z "$ARTEXT" ]; then
+	#			echo "unknown embedded album art format ${ARTFORMAT}, cannot continue." > /dev/stderr
+	#			exit 1;
+	#		fi
+	#	fi
+	# fi
+
+	ffmpeg -v -1 -i "$1" -acodec alac "${D}/.tmp.${NF}" 
+
+	if [ $? -ne 0 ]; then
+		echo "Problem running conversion, exiting." > /dev/stderr
+		rm -f "${D}/.flacdecode.${NF}.wav"
+		rm -f "${D}/.tmp.${NF}" "${D}/${ARTFILE}"
+		exit 1
+	fi
+
+	mp4tags -s "$TITLE" "${D}/.tmp.${NF}"
+	mp4tags -t "$TRACKNUMBER" "${D}/.tmp.${NF}"
+	mp4tags -T "$TRACKTOTAL" "${D}/.tmp.${NF}"
+	mp4tags -d "$DISCNUMBER" "${D}/.tmp.${NF}"
+	mp4tags -D "$DISCTOTAL" "${D}/.tmp.${NF}"
+	mp4tags -w "$COMPOSER" "${D}/.tmp.${NF}"
+	mp4tags -c "$DESCRIPTION" "${D}/.tmp.${NF}"
+	mp4tags -a "$ARTIST" "${D}/.tmp.${NF}"
+	mp4tags -R "$ALBUMARTIST" "${D}/.tmp.${NF}"
+	mp4tags -A "$ALBUM" "${D}/.tmp.${NF}"
+	mp4tags -g "$GENRE" "${D}/.tmp.${NF}" 
+	mp4tags -y "$DATE"  "${D}/.tmp.${NF}"
+
+	if [ -f "${D}/$ARTFILE" ]; then
+		# this embeds a png or jpeg cover into the m4a if it was
+		# found in the original flac file
+		mp4tags -P "${D}/$ARTFILE" "${D}/.tmp.${NF}"
+		rm -f "${D}/${ARTFILE}"	
+	fi
+
+
+	ffmpeg -i "${D}/.tmp.${NF}" "${D}/.alacdecode.${NF}.wav"
+	if [ $? -ne 0 ]; then
+		rm -f "${D}/.flacdecode.${NF}.wav"
+		rm -f "${D}/.alacdecode.${NF}.wav"
+		rm -f "${D}/${NF}"
+		echo "ERROR: unable to decode new ALAC, exiting." > /dev/stderr
+		exit 1
+	fi
+	ORIG="`md5 \"${D}/.flacdecode.${NF}.wav\" | awk '{print $1}'`"	
+	NEW="`md5 \"${D}/.alacdecode.${NF}.wav\" | awk '{print $1}'`"	
+	rm -f "${D}/.alacdecode.${NF}.wav"
+	rm -f "${D}/.flacdecode.${NF}.wav"
+	if [ "$ORIG" != "$NEW" ]; then
+		echo "ERROR: Newly converted ALAC is not identical!" > /dev/stderr
+		echo "Aborting!" > /dev/stderr
+		rm -f "${D}/.tmp.${NF}"
+		exit 1
+	else
+		mv "${D}/.tmp.${NF}" "${D}/${NF}"
+		OLDSIZE="`du -s \"$1\" | awk '{print $1}'`" 	
+		NEWSIZE="`du -s \"${D}/${NF}\" | awk '{print $1}'`" 	
+		PCT=$(( $NEWSIZE * 100 / $OLDSIZE ))
+		echo "Successfully converted:"
+		echo "$1 -> ${D}/$NF"
+		echo "STATS: ALAC is ${PCT}% the size of the input FLAC" 
+		if [ $DELETE_WHEN_DONE -gt 0 ]; then
+			rm -v "$1"
+		fi	
+		exit 0
+	fi
+}
+
+if [ $# -lt 1 ]; then
+	echo "usage: $0 [-d] <file.flac> [file2.flac] [...]" > /dev/stderr
+	exit 1
+fi
+
+DELETE_WHEN_DONE=0
+
+for filename in "$@"; do
+	if [ "$filename" = "-d" ]; then
+		DELETE_WHEN_DONE=1
+	fi
+	if [ -f "$filename" ]; then
+		_convert_flac2alac "$filename"
+	fi
+done
