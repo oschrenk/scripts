@@ -1,10 +1,10 @@
 #!/bin/sh
 
-KEY="$HOME/.ssh/id_dsa.pub"
+KEY="$HOME/.ssh/id_rsa.pub"
 
-if [ ! -f ~/.ssh/id_dsa.pub ];then
+if [ ! -f ~/.ssh/id_rsa.pub ];then
     echo "private key not found at $KEY"
-    echo "* please create it with "ssh-keygen -t dsa" *"
+    echo "* please create it with "ssh-keygen -t rsa" *"
     echo "* to login to the remote host without a password, don't give the key you create with ssh-keygen a password! *"
     exit
 fi
