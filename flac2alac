@@ -112,10 +112,6 @@ function _convert_flac2alac {
 		echo "Successfully converted:"
 		echo "$1 -> ${D}/$NF"
 		echo "STATS: ALAC is ${PCT}% the size of the input FLAC" 
-		if [ $DELETE_WHEN_DONE -gt 0 ]; then
-			rm -v "$1"
-		fi	
-		exit 0
 	fi
 }
 
@@ -124,12 +120,7 @@ if [ $# -lt 1 ]; then
 	exit 1
 fi
 
-DELETE_WHEN_DONE=0
-
 for filename in "$@"; do
-	if [ "$filename" = "-d" ]; then
-		DELETE_WHEN_DONE=1
-	fi
 	if [ -f "$filename" ]; then
 		_convert_flac2alac "$filename"
 	fi
