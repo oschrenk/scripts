@@ -11,7 +11,8 @@ github_root = 'git://github.com'
 packages = {
   'Color Scheme - Monokai TimmFin' => 'timmfin/monokai-timmfin',
   'Theme - Soda' => 'buymeasoda/soda-theme',
-  'JSHint' => 'uipoet/sublime-jshint'
+  'JSHint' => 'uipoet/sublime-jshint',
+  'MarkdownEditing' => 'oschrenk/MarkdownEditing'
 }
 
 # without these sublime probably won't work correctly
