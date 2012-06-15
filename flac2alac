@@ -57,7 +57,7 @@ function _convert_flac2alac {
 	#	fi
 	# fi
 
-	ffmpeg -v -1 -i "$1" -acodec alac "${D}/.tmp.${NF}"
+	ffmpeg -v -1 -i "$1" -ar 44100 -acodec alac "${D}/.tmp.${NF}"
 
 	if [ $? -ne 0 ]; then
 		echo "Problem running conversion, exiting." > /dev/stderr
