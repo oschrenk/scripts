@@ -17,7 +17,7 @@
 # also iTunes 10.x will accept either embedded png or jpeg in an alac m4a
 
 function _convert_flac2alac {
-	
+
 	NF="`basename \"$1\" .flac`.m4a"
 	D="`dirname \"$1\"`"
 
@@ -43,9 +43,9 @@ function _convert_flac2alac {
 	COMPOSER="`metaflac --show-tag=COMPOSER \"$1\" | perl -pe 's/COMPOSER=//ig'`"
 	ARTFILE=".arttmp.${NF}"
 	# ARTFORMAT="`metaflac --export-picture-to=- \"$1\" | file -i -b - | awk '{split(\$1,arr,\";\"); print arr[1]}'`"
-	# 
+	#
 	# if [ $? -eq 0 ]; then
-	# 	
+	#
 	#	if [ "$ARTFORMAT" != "application/x-empty" ]; then
 	#		metaflac --export-picture-to="${D}/${ARTFILE}" "$1"
 	#		if [ "$ARTFORMAT" = "image/png" ]; then ARTEXT="png"; fi
@@ -57,7 +57,7 @@ function _convert_flac2alac {
 	#	fi
 	# fi
 
-	ffmpeg -v -1 -i "$1" -acodec alac "${D}/.tmp.${NF}" 
+	ffmpeg -v -1 -i "$1" -acodec alac "${D}/.tmp.${NF}"
 
 	if [ $? -ne 0 ]; then
 		echo "Problem running conversion, exiting." > /dev/stderr
@@ -76,14 +76,14 @@ function _convert_flac2alac {
 	mp4tags -a "$ARTIST" "${D}/.tmp.${NF}"
 	mp4tags -R "$ALBUMARTIST" "${D}/.tmp.${NF}"
 	mp4tags -A "$ALBUM" "${D}/.tmp.${NF}"
-	mp4tags -g "$GENRE" "${D}/.tmp.${NF}" 
+	mp4tags -g "$GENRE" "${D}/.tmp.${NF}"
 	mp4tags -y "$DATE"  "${D}/.tmp.${NF}"
 
 	if [ -f "${D}/$ARTFILE" ]; then
 		# this embeds a png or jpeg cover into the m4a if it was
 		# found in the original flac file
 		mp4tags -P "${D}/$ARTFILE" "${D}/.tmp.${NF}"
-		rm -f "${D}/${ARTFILE}"	
+		rm -f "${D}/${ARTFILE}"
 	fi
 
 
@@ -95,8 +95,8 @@ function _convert_flac2alac {
 		echo "ERROR: unable to decode new ALAC, exiting." > /dev/stderr
 		exit 1
 	fi
-	ORIG="`md5 \"${D}/.flacdecode.${NF}.wav\" | awk '{print $1}'`"	
-	NEW="`md5 \"${D}/.alacdecode.${NF}.wav\" | awk '{print $1}'`"	
+	ORIG="`md5 \"${D}/.flacdecode.${NF}.wav\" | awk '{print $1}'`"
+	NEW="`md5 \"${D}/.alacdecode.${NF}.wav\" | awk '{print $1}'`"
 	rm -f "${D}/.alacdecode.${NF}.wav"
 	rm -f "${D}/.flacdecode.${NF}.wav"
 	if [ "$ORIG" != "$NEW" ]; then
@@ -106,12 +106,12 @@ function _convert_flac2alac {
 		exit 1
 	else
 		mv "${D}/.tmp.${NF}" "${D}/${NF}"
-		OLDSIZE="`du -s \"$1\" | awk '{print $1}'`" 	
-		NEWSIZE="`du -s \"${D}/${NF}\" | awk '{print $1}'`" 	
+		OLDSIZE="`du -s \"$1\" | awk '{print $1}'`"
+		NEWSIZE="`du -s \"${D}/${NF}\" | awk '{print $1}'`"
 		PCT=$(( $NEWSIZE * 100 / $OLDSIZE ))
 		echo "Successfully converted:"
 		echo "$1 -> ${D}/$NF"
-		echo "STATS: ALAC is ${PCT}% the size of the input FLAC" 
+		echo "STATS: ALAC is ${PCT}% the size of the input FLAC"
 	fi
 }
 
