@@ -1,0 +1,2 @@
+#!/bin/bash
+nmap -sP 192.168.0.1/24 | grep report | awk '{print $5}' | xargs resolveip 2>/dev/null | awk '{print $4" "$6}' | cut -d. -f-4
