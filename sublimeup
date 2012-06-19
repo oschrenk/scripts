@@ -10,9 +10,9 @@ ENV['LC_CTYPE'] = 'en_US.UTF-8'
 github_root = 'git://github.com'
 packages = {
   'Color Scheme - Monokai TimmFin' => 'timmfin/monokai-timmfin',
-  'Theme - Soda' => 'buymeasoda/soda-theme',
   'JSHint' => 'uipoet/sublime-jshint',
-  'MarkdownEditing' => 'oschrenk/MarkdownEditing'
+  'MarkdownEditing' => 'oschrenk/MarkdownEditing',
+  'Theme - Soda' => 'buymeasoda/soda-theme'
 }
 
 # without these sublime probably won't work correctly
@@ -57,7 +57,7 @@ begin
 rescue Errno::ENOENT
   puts "Packages directory doesn't exist... creating it!"
   puts
-  
+
   `mkdir -p '#{dir}'`
   retry
 end
@@ -65,7 +65,7 @@ end
 Dir.entries('.').each do |e|
   next if e =~ /^\./
   next unless File.directory? e
-  
+
   package_name = e.gsub(/.tmbundle$/, '')
 
   print "* #{package_name}: "
@@ -73,7 +73,7 @@ Dir.entries('.').each do |e|
   if packages.delete package_name
     puts "package exists, updating"
     `cd #{cleanup e}; git pull --quiet origin master; cd ..;`
-    
+
   else
     if corePackages.index(package_name)
       print "Ignoring core package\n"
