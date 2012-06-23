@@ -10,6 +10,7 @@ ENV['LC_CTYPE'] = 'en_US.UTF-8'
 github_root = 'git://github.com'
 packages = {
   'Color Scheme - Monokai TimmFin' => 'timmfin/monokai-timmfin',
+  'Git' => 'kemayo/sublime-text-2-git',
   'Theme - Soda' => 'buymeasoda/soda-theme',
   'JSHint' => 'uipoet/sublime-jshint',
   'MarkdownEditing' => 'oschrenk/MarkdownEditing'
