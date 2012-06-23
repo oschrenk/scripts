@@ -15,33 +15,54 @@ packages = {
   'MarkdownEditing' => 'oschrenk/MarkdownEditing'
 }
 
-# without these sublime probably won't work correctly
-corePackages = [
-  'Color Scheme - Default',
-  'Default',
-  'Language - English',
-  'Python',
-  'Theme - Default',
-  'User'
-]
-
+# packages provided by defult installation
 providedPackages = [
+  'ActionScript',
+  'AppleScript',
+  'ASP',#
+  'Batch File',
   'C++',
+  'C#',
+  'Clojure',
+  'Color Scheme - Default',
   'CSS',
+  'D',
+  'Default',
   'Diff',
+  'Erlang',
+  'Go',
   'Graphviz',
+  'Groovy',
+  'Haskell',
   'HTML',
   'Java',
   'JavaScript',
+  'Language - English',
   'LaTeX',
+  'Lua',
+  'Lisp',
   'Makefile',
+  'Matlab',
   'Markdown',
+  'Objective-C',
+  'OCaml',
+  'Python',
+  'Perl',
+  'PHP',
+  'R',
+  'Rails',
   'Regular Expressions',
+  'RestructuredText',
   'Ruby',
+  'Scala',
   'ShellScript',
   'SQL',
+  'TCL',
   'Text',
+  'Textile',
+  'Theme - Default',
   'User',
+  'Vintage',
   'XML',
   'YAML'
 ]
@@ -57,7 +78,7 @@ begin
 rescue Errno::ENOENT
   puts "Packages directory doesn't exist... creating it!"
   puts
-  
+
   `mkdir -p '#{dir}'`
   retry
 end
@@ -65,7 +86,7 @@ end
 Dir.entries('.').each do |e|
   next if e =~ /^\./
   next unless File.directory? e
-  
+
   package_name = e.gsub(/.tmbundle$/, '')
 
   print "* #{package_name}: "
@@ -73,11 +94,9 @@ Dir.entries('.').each do |e|
   if packages.delete package_name
     puts "package exists, updating"
     `cd #{cleanup e}; git pull --quiet origin master; cd ..;`
-    
+
   else
-    if corePackages.index(package_name)
-      print "Ignoring core package\n"
-    elsif providedPackages.index(package_name)
+    if providedPackages.index(package_name)
       print "Ignoring provided package\n"
     else
       print "don't know about this package.  Delete it? [y/n] "
