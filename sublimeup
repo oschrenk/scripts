@@ -12,6 +12,7 @@ packages = {
   'Color Scheme - Monokai TimmFin' => 'timmfin/monokai-timmfin',
   'Git' => 'kemayo/sublime-text-2-git',
   'JSHint' => 'uipoet/sublime-jshint',
+  'LatexTools' => 'SublimeText/LaTeXTools',
   'MarkdownEditing' => 'oschrenk/MarkdownEditing',
   'Theme - Soda' => 'buymeasoda/soda-theme'
 }
