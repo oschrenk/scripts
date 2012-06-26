@@ -10,38 +10,60 @@ ENV['LC_CTYPE'] = 'en_US.UTF-8'
 github_root = 'git://github.com'
 packages = {
   'Color Scheme - Monokai TimmFin' => 'timmfin/monokai-timmfin',
+  'Git' => 'kemayo/sublime-text-2-git',
   'JSHint' => 'uipoet/sublime-jshint',
   'MarkdownEditing' => 'oschrenk/MarkdownEditing',
   'Theme - Soda' => 'buymeasoda/soda-theme'
 }
 
-# without these sublime probably won't work correctly
-corePackages = [
-  'Color Scheme - Default',
-  'Default',
-  'Language - English',
-  'Python',
-  'Theme - Default',
-  'User'
-]
-
+# packages provided by defult installation
 providedPackages = [
+  'ActionScript',
+  'AppleScript',
+  'ASP',#
+  'Batch File',
   'C++',
+  'C#',
+  'Clojure',
+  'Color Scheme - Default',
   'CSS',
+  'D',
+  'Default',
   'Diff',
+  'Erlang',
+  'Go',
   'Graphviz',
+  'Groovy',
+  'Haskell',
   'HTML',
   'Java',
   'JavaScript',
+  'Language - English',
   'LaTeX',
+  'Lua',
+  'Lisp',
   'Makefile',
+  'Matlab',
   'Markdown',
+  'Objective-C',
+  'OCaml',
+  'Python',
+  'Perl',
+  'PHP',
+  'R',
+  'Rails',
   'Regular Expressions',
+  'RestructuredText',
   'Ruby',
+  'Scala',
   'ShellScript',
   'SQL',
+  'TCL',
   'Text',
+  'Textile',
+  'Theme - Default',
   'User',
+  'Vintage',
   'XML',
   'YAML'
 ]
@@ -75,9 +97,7 @@ Dir.entries('.').each do |e|
     `cd #{cleanup e}; git pull --quiet origin master; cd ..;`
 
   else
-    if corePackages.index(package_name)
-      print "Ignoring core package\n"
-    elsif providedPackages.index(package_name)
+    if providedPackages.index(package_name)
       print "Ignoring provided package\n"
     else
       print "don't know about this package.  Delete it? [y/n] "
