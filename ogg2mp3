@@ -1,0 +1,221 @@
+#!/usr/bin/env python
+
+"""
+ogg2mp3 (Transcode OGG to MP3)
+
+Requirements:
+* python
+* oggdec
+* ogginfo
+* lame
+
+History:
+--------
+2005-07-06  Darren Stone  Created.  http://bitmason.com
+2007-02-25  Darren Stone  Fixed shell quote bug
+2007-10-14  Darren Stone  More decode + encode error trapping. Detect unrecognized genres (LAME limitation).
+2007-12-08  Darren Stone  Case-insensitive match on ogginfo keys. (Thanx to Owen Emmerson for the catch.)
+
+Run with --help for usage.
+
+Distribute, use, and modify freely, but please keep the
+history above and usage below up to date!
+"""
+
+
+from sys import argv, exit, stdout
+from os import system, stat, getpid, unlink
+from os.path import basename
+from signal import signal, SIGINT
+from commands import getoutput
+
+
+# base LAME command.
+# 1. ID3 tags, etc. will be automatically appended if available
+# 2. user-supplied command line options will also be appended
+lame_cmd_base = 'lame --quiet --ignore-tag-errors'
+
+# Describes mapping from ogginfo keys to LAME ID3 tag commands.
+# Match will be case-insensitive on the OGG side.
+ogg_to_id3 = {
+  'TITLE': '--tt',
+  'ARTIST': '--ta',
+  'ALBUM': '--tl',
+  'GENRE': '--tg',
+  'COMMENT': '--tc',
+  'DATE': '--ty',
+  'TRACKNUMBER': '--tn',
+  }
+
+# supported ID3 genres
+LAME_GENRES = []
+
+# temporary WAV file will be created (and later removed) in current working directory
+WAV_FILENAME_PREFIX = "_tmp_ogg2mp3_"
+
+def init_lame_genres():
+  """
+  LAME supports only a limited set of textual genres (despite ID3V2 allowing for
+  user defined strings).  This helps us detect and report this limitation.
+  """
+  for line in getoutput("lame --genre-list").splitlines():
+    try:
+      LAME_GENRES.append(line.strip().split(' ', 1)[1].lower())
+    except:
+      pass
+
+def ogg_info_dict(oggfilename):
+  """
+  Return dictionary of ogginfo, containing at least the keys in
+  ogg_to_id3 -if- they are present in the ogg file.
+  """
+  d = {}
+  out = getoutput("ogginfo %s" % shell_quote(oggfilename))
+  out = out.splitlines()
+  for line in out:
+    for k in ogg_to_id3.keys():
+      i = line.lower().find(k.lower()+'=')
+      if i != -1:
+        d[k] = line[i+len(k)+1:].strip()
+  return d
+
+
+def file_size(filename):
+  """
+  Return size of file, in bytes.
+  """
+  return stat(filename).st_size
+
+
+def size_to_human(bytes):
+  """
+  Return string representation of the byte count, human-readable
+  (i.e. in B, KB, MB, or GB)
+  """
+  if bytes >= 1024*1024*1024:
+    return "%0.1f GB" % (float(bytes)/1024.0/1024.0/1024.0)
+  elif bytes >= 1024*1024:
+    return "%0.1f MB" % (float(bytes)/1024.0/1024.0)
+  elif bytes >= 1024:
+    return "%0.1f KB" % (float(bytes)/1024.0)
+  else:
+    return "%d B" % bytes
+
+
+def file_size_human(filename):
+  """
+  Return string representation of the filename, human-readable
+  (i.e. in B, KB, MB, or GB)
+  """
+  return size_to_human(stat(filename).st_size)
+
+
+def shell_quote(s):
+  """
+  Quote and escape the given string (if necessary) for inclusion in
+  a shell command
+  """
+  return "\"%s\"" % s.replace('"', '\"')
+
+
+def transcode(oggfilename):
+  """
+  Transcode given OGG to MP3 in current directory, with .mp3 extension,
+  transferring meta info where possible.
+  Return (oggsize, mp3size).
+  """
+  try:
+    wavfilename = "%s%d.wav" % (WAV_FILENAME_PREFIX, getpid())
+    mp3filename = "%s.mp3" % basename(oggfilename)[:-4]
+    oggsize = file_size_human(oggfilename)
+    stdout.write("%s (%s)\n" % (oggfilename, oggsize))
+    oggdict = ogg_info_dict(oggfilename)
+    encode_cmd = lame_cmd_base
+    for k in oggdict.keys():
+      k = k.upper()
+      knote = ''
+      if k in ogg_to_id3.keys():
+        if k == 'GENRE' and oggdict[k].lower() not in LAME_GENRES:
+          knote = "[WARNING: Unrecognized by LAME so MP3 genre will be 'Other']"
+        encode_cmd = "%s %s %s" % (encode_cmd, ogg_to_id3[k], shell_quote(oggdict[k]))
+        stdout.write("  %s: %s %s\n" % (str(k), str(oggdict[k]), knote))
+    stdout.write("%s " % mp3filename)
+    stdout.flush()
+    decode_cmd = "oggdec --quiet -o %s %s 2>/dev/null" % (shell_quote(wavfilename), shell_quote(oggfilename))
+    system(decode_cmd)
+    wavsize = 0
+    try:
+      wavsize = file_size(wavfilename)
+    except:
+      pass
+    if wavsize <= 0:
+      stdout.write("[FAILED] OGG did not decode to intermediate WAV\n\n")
+      return (file_size(oggfilename), 0)
+    encode_cmd = "%s %s %s 2>/dev/null" % (encode_cmd, wavfilename, shell_quote(mp3filename))
+    system(encode_cmd)
+    try:
+      mp3size = file_size_human(mp3filename)
+    except:
+      stdout.write("[FAILED] OGG decoded but MP3 encoding and/or tagging failed\n\n")
+      return (file_size(oggfilename), 0)
+    stdout.write("(%s)\n\n" % mp3size)
+  except Exception, e:
+    stdout.write(str(e))
+  try:
+    unlink(wavfilename)
+  except:
+    pass
+  return (file_size(oggfilename), file_size(mp3filename))
+
+
+def sig_int_handler(p0, p1):
+  """ Make CTRL-C less catasrophic """
+  pass
+
+
+if __name__ == '__main__':
+
+  # TODO: ensure oggdec, ogginfo, lame are available
+
+  signal(SIGINT, sig_int_handler)
+  failure = False  # True iff one or more files fail
+
+  if len(argv) < 2 or (len(argv) >= 2 and argv[1] in ('-h', '--help', '-?')):
+    progname = basename(argv[0])
+    print "Usage: %s [LAME_OPTIONS] FILE1 [FILE2 [FILE3 ...]]" % progname
+    print "\nTranscode FILE(s) from OGG to MP3."
+    print "MP3s with same basename and .mp3 extension will be written to current working"
+    print "directory and meta info will be transferred to ID3 tags where possible."
+    print "\nExamples:"
+    print "%s -B 256 --vbr-new -V 0 *.ogg  (decent quality VBR)" % progname
+    print "%s -m m -s 22.05 -b 56 -q 9 --lowpass 8 *.ogg  (lo-fi, fast, mono CBR)" % progname
+    exit(1)
+
+  # append user-supplied cmd line options (for LAME)
+  argv.pop(0)
+  while not argv[0].lower().endswith('.ogg'):
+    lame_cmd_base = "%s %s" % (lame_cmd_base, argv[0])
+    argv.pop(0)
+
+  init_lame_genres()
+
+  fcount = 0
+  oggsize = 0
+  mp3size = 0
+  for f in argv:
+    (s1, s2) = transcode(f)
+    fcount += 1
+    oggsize += s1
+    mp3size += s2
+    if s1 == 0 or s2 == 0: failure = True
+
+  # summary
+  if fcount > 1:
+    stdout.write("%s OGGs (%s) transcoded to MP3 (%s)\n" % (
+      fcount,
+      size_to_human(oggsize),
+      size_to_human(mp3size)))
+    if failure:
+      stdout.write("One or more files failed to transcode.  Review output above.\n")
+
+  exit(int(failure))
