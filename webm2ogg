@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# webm2mp3 - extract mp3 audio from web2m
+#
+if [ "$1" ]
+then
+  for file
+  do
+    if [ -e "$file" ]
+    then
+      ffmpeg -i "$file" -vn -acodec copy "${file%.*}.ogg"
+    else
+      echo >&2 "No such file: "$1""
+      exit 1
+    fi
+  done
+else
+  echo >&2 "Usage: "$(basename "$0")" INPUTFILE [...]"
+  exit 1
+fi
