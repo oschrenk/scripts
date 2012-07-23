@@ -15,6 +15,7 @@ packages = {
   'LatexTools' => 'SublimeText/LaTeXTools',
   'LineEndings' => 'SublimeText/LineEndings',
   'MarkdownEditing' => 'oschrenk/MarkdownEditing',
+  'OpenCL' => 'oschrenk/OpenCL-Syntax',
   'Theme - Soda' => 'buymeasoda/soda-theme'
 }
 
