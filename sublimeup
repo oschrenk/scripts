@@ -13,6 +13,7 @@ packages = {
   'Git' => 'kemayo/sublime-text-2-git',
   'JSHint' => 'uipoet/sublime-jshint',
   'LatexTools' => 'SublimeText/LaTeXTools',
+  'LineEndings' => 'SublimeText/LineEndings',
   'MarkdownEditing' => 'oschrenk/MarkdownEditing',
   'Theme - Soda' => 'buymeasoda/soda-theme'
 }
