@@ -97,7 +97,7 @@ Dir.entries('.').each do |e|
 
   if packages.delete package_name
     puts "package exists, updating"
-    `cd #{cleanup e}; git pull --quiet origin master; cd ..;`
+    `cd #{cleanup e}; git pull origin master; cd ..;`
 
   else
     if providedPackages.index(package_name)
