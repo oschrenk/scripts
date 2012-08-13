@@ -1,4 +1,5 @@
-# script setting environment variables for tests
+# OS Environment Variables for tests
+# source: http://stackoverflow.com/questions/394230
 
 lowercase(){
     echo "$1" | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/"
