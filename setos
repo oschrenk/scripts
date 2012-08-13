@@ -44,7 +44,7 @@ else
         if [ -f /etc/UnitedLinux-release ] ; then
             DIST="${DIST}[`cat /etc/UnitedLinux-release | tr "\n" ' ' | sed s/VERSION.*//`]"
         fi
-        OS=`env | grep $OS | tr '[A-Z]' '[a-z]'`
+        OS=`echo $OS | tr '[A-Z]' '[a-z]'`
         DistroBasedOn=`lowercase $DistroBasedOn`
     fi
 fi
