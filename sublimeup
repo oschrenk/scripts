@@ -16,6 +16,7 @@ packages = {
   'LineEndings' => 'SublimeText/LineEndings',
   'MarkdownEditing' => 'oschrenk/MarkdownEditing',
   'OpenCL' => 'oschrenk/OpenCL-Syntax',
+  'PEGjs' => 'alexstrat/PEGjs.tmbundle',
   'Theme - Soda' => 'buymeasoda/soda-theme'
 }
 
