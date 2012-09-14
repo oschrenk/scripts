@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Powerline style prompt for Bash, original here:
-# https://github.com/milkbikis/powerline-bash
-# /commit/b1946d9856538c92188baf995d01b1b2cf3b8d84
+# from
+# https://raw.github.com/milkbikis/powerline-bash/
+# da852b267597156dd808af1132e591a5c3558c2c/powerline-bash.py
 
 import os
 import subprocess
@@ -112,7 +112,7 @@ def add_git_segment(powerline, cwd):
     p2 = subprocess.Popen(['grep', '-e', '\\*'], stdin=p1.stdout, stdout=subprocess.PIPE)
     output = p2.communicate()[0].strip()
     if len(output) == 0:
-        return false
+        return False
     branch = output.rstrip()[2:]
     has_pending_commits, has_untracked_files = get_git_status()
     if has_untracked_files:
