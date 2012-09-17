@@ -17,6 +17,7 @@ packages = {
   'MarkdownEditing' => 'oschrenk/MarkdownEditing',
   'OpenCL' => 'oschrenk/OpenCL-Syntax',
   'PEGjs' => 'alexstrat/PEGjs.tmbundle',
+  'PlainTasks' => 'aziz/PlainTasks',
   'Theme - Soda' => 'buymeasoda/soda-theme'
 }
 
