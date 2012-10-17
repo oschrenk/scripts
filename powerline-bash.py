@@ -10,6 +10,11 @@ import subprocess
 import sys
 import re
 
+MAX_DEPTH = 5
+
+GREEN = 148
+RED = 161
+
 class Powerline:
     symbols = {
         'compatible': {
@@ -92,15 +97,13 @@ def is_hg_clean():
     return len(output) == 0
 
 def add_hg_segment(powerline, cwd):
-    green = 148
-    red = 161
     branch = os.popen('hg branch 2> /dev/null').read().rstrip()
     if len(branch) == 0:
         return False
-    bg = red
+    bg = RED
     fg = 15
     if is_hg_clean():
-        bg = green
+        bg = GREEN
         fg = 0
     powerline.append(Segment(powerline, ' %s ' % branch, fg, bg))
     return True
@@ -126,8 +129,7 @@ def get_git_status():
     return has_pending_commits, has_untracked_files, origin_position
 
 def add_git_segment(powerline, cwd):
-    green = 148
-    red = 161
+
     #cmd = "git branch 2> /dev/null | grep -e '\\*'"
     p1 = subprocess.Popen(['git', 'branch'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     p2 = subprocess.Popen(['grep', '-e', '\\*'], stdin=p1.stdout, stdout=subprocess.PIPE)
@@ -139,10 +141,10 @@ def add_git_segment(powerline, cwd):
     branch += origin_position
     if has_untracked_files:
         branch += ' +'
-    bg = green
+    bg = GREEN
     fg = 0
     if has_pending_commits:
-        bg = red
+        bg = RED
         fg = 15
     powerline.append(Segment(powerline, ' %s ' % branch, fg, bg))
     return True
@@ -156,7 +158,7 @@ def add_svn_segment(powerline, cwd):
         'A' Added
         'C' Conflicted
         'D' Deleted
-        'I' Ignored
+        'I' IgnoRED
         'M' Modified
         'R' Replaced
         'X' an unversioned directory created by an externals definition
@@ -172,7 +174,7 @@ def add_svn_segment(powerline, cwd):
         output = p2.communicate()[0].strip()
         if len(output) > 0 and int(output) > 0:
             changes = output.strip()
-            powerline.append(Segment(powerline, ' %s ' % changes, 22, 148))
+            powerline.append(Segment(powerline, ' %s ' % changes, 22, GREEN))
     except OSError:
         return False
     except subprocess.CalledProcessError:
@@ -204,7 +206,7 @@ def add_root_indicator(powerline, error):
     fg = 15
     if int(error) != 0:
         fg = 15
-        bg = 161
+        bg = RED
     powerline.append(Segment(powerline, ' \\$ ', fg, bg))
 
 if __name__ == '__main__':
@@ -213,7 +215,7 @@ if __name__ == '__main__':
     add_virtual_env_segment(p, cwd)
     #p.append(Segment(powerline, ' \\u ', 250, 240))
     #p.append(Segment(powerline, ' \\h ', 250, 238))
-    add_cwd_segment(p, cwd, 5)
+    add_cwd_segment(p, cwd, MAX_DEPTH)
     add_repo_segment(p, cwd)
     add_root_indicator(p, sys.argv[1] if len(sys.argv) > 1 else 0)
     sys.stdout.write(p.draw())
