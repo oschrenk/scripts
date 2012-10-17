@@ -10,7 +10,7 @@ import subprocess
 import sys
 import re
 
-MAX_DEPTH = 5
+MAX_DEPTH = 3
 
 GREEN = 148
 RED = 161
