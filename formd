@@ -2,6 +2,10 @@
 # encoding=utf8
 
 # formd—A Markdown formatting tool by Seth brown
+# formd is a tool for (for)matting (M)ark(d)own
+# that allows rapid #conversion between the two
+# styles of Markdown links and images—inline and referenced.
+
 # Original can be found at https://github.com/drbunsen/formd
 
 """
