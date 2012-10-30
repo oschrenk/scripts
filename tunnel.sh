@@ -8,6 +8,9 @@ if [ $1 == "on" ]; then
   sudo networksetup -setsocksfirewallproxy Wi-Fi 127.0.0.1 $local_port off
   echo "Starting SSH session. Will run in background for 1 day."
   ssh -f tunnel -N -D localhost:$local_port sleep 1d
+  remote_ip=`curl --socks5 127.0.0.1:$local_port http://automation.whatismyip.com/n09230945.asp`
+  echo "Your remote ip is $remote_ip"
+  echo "http_proxy has NOT been set."
 fi
 
 if [ $1 == "off" ]; then
