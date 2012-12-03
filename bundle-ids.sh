@@ -10,6 +10,7 @@ Contacts
 Dashboard
 Dictionary
 Gimp
+Google Chrome
 iPhoto
 iTunes
 LibreOffice
@@ -17,6 +18,7 @@ Mail
 MPlayerX
 Preview
 Sublime Text 2
+The Unarchiver
 VLC
 "
 
