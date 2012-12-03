@@ -12,6 +12,7 @@ packages = {
   'Color Scheme - Monokai TimmFin' => 'timmfin/monokai-timmfin',
   'Git' => 'kemayo/sublime-text-2-git',
   'JSHint' => 'uipoet/sublime-jshint',
+  'IncDec' => 'rmaksim/Sublime-Text-2-Inc-Dec-Value',
   'LatexTools' => 'SublimeText/LaTeXTools',
   'LineEndings' => 'SublimeText/LineEndings',
   'MarkdownEditing' => 'oschrenk/MarkdownEditing',
