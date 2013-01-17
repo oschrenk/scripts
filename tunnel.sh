@@ -39,7 +39,7 @@ echo "Listening on localhost:$localport. Modifying network settings.."
   echo "Starting SSH session. Will run in background for 1 day."
   ssh -f tunnel -N -D localhost:$localport sleep 1d
 
-  remote_ip=`curl -s -S --socks5 127.0.0.1:$localport http://automation.whatismyip.com/n09230945.asp`
+  remote_ip=`curl -s -S --socks5 127.0.0.1:$localport http://curlmyip.com/`
   echo "Your remote ip is $remote_ip"
   echo "The http_proxy for the terminal has NOT been set."
 }
