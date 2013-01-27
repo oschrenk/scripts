@@ -11,7 +11,6 @@ github_root = 'git://github.com'
 packages = {
   'Color Scheme - Monokai TimmFin' => 'timmfin/monokai-timmfin',
   'Git' => 'kemayo/sublime-text-2-git',
-  'JSHint' => 'uipoet/sublime-jshint',
   'IncDec' => 'rmaksim/Sublime-Text-2-Inc-Dec-Value',
   'LatexTools' => 'SublimeText/LaTeXTools',
   'LineEndings' => 'SublimeText/LineEndings',
@@ -19,6 +18,7 @@ packages = {
   'OpenCL' => 'oschrenk/OpenCL-Syntax',
   'PEGjs' => 'alexstrat/PEGjs.tmbundle',
   'PlainTasks' => 'aziz/PlainTasks',
+  'SublimeLinter' => 'SublimeLinter/SublimeLinter',
   'Theme - Soda' => 'buymeasoda/soda-theme'
 }
 
