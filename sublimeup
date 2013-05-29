@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby -w
+#!/usr/bin/env ruby
 
 # Updates Sublime 2 packages using the Github repositories
 
@@ -13,6 +13,7 @@ packages = {
   'Git' => 'kemayo/sublime-text-2-git',
   'GitGutter' => 'jisaacks/GitGutter',
   'IncDec' => 'rmaksim/Sublime-Text-2-Inc-Dec-Value',
+  'JsFormat' => 'jdc0589/JsFormat',
   'LatexTools' => 'SublimeText/LaTeXTools',
   'LineEndings' => 'SublimeText/LineEndings',
   'MarkdownEditing' => 'ttscoff/MarkdownEditing',
@@ -23,7 +24,7 @@ packages = {
   'Theme - Soda' => 'buymeasoda/soda-theme'
 }
 
-# packages provided by defult installation
+# packages provided by default installation
 providedPackages = [
   'ActionScript',
   'AppleScript',
