@@ -23,14 +23,14 @@ packages = {
   'Theme - Soda' => 'buymeasoda/soda-theme'
 }
 
-# packages provided by defult installation
+# packages provided by default installation
 providedPackages = [
   'ActionScript',
   'AppleScript',
   'ASP',#
   'Batch File',
-  'C++',
   'C#',
+  'C++',
   'Clojure',
   'Color Scheme - Default',
   'CSS',
@@ -47,13 +47,14 @@ providedPackages = [
   'JavaScript',
   'Language - English',
   'LaTeX',
-  'Lua',
   'Lisp',
+  'Lua',
   'Makefile',
-  'Matlab',
   'Markdown',
+  'Matlab',
   'Objective-C',
   'OCaml',
+  'Pascal',
   'Python',
   'Perl',
   'PHP',
