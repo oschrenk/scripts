@@ -84,7 +84,7 @@ end
 
 def packageDir()
   if RUBY_PLATFORM.downcase.include?("darwin")
-    return "#{ENV['HOME']}/Library/Application\ Support/Sublime\ Text\ 2/Packages"
+    return "#{ENV['HOME']}/Library/Application\ Support/Sublime\ Text\ 3/Packages"
   elsif RUBY_PLATFORM.downcase.include?("linux")
     return "#{ENV['HOME']}/.config/sublime-text-2/Packages"
   end
