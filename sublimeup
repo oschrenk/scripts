@@ -9,17 +9,18 @@ ENV['LC_CTYPE'] = 'en_US.UTF-8'
 
 github_root = 'git://github.com'
 packages = {
+  # 'name' => 'github_username/reponame[#branch]
   'Color Scheme - Monokai TimmFin' => 'timmfin/monokai-timmfin',
-  'Git' => 'kemayo/sublime-text-2-git',
+  'Git' => 'kemayo/sublime-text-2-git#python3',
   'GitGutter' => 'jisaacks/GitGutter',
   'IncDec' => 'rmaksim/Sublime-Text-2-Inc-Dec-Value',
   'LatexTools' => 'SublimeText/LaTeXTools',
-  'LineEndings' => 'SublimeText/LineEndings',
+  'LineEndings' => 'SublimeText/LineEndings#st3',
   'MarkdownEditing' => 'ttscoff/MarkdownEditing',
   'OpenCL' => 'oschrenk/OpenCL-Syntax',
   'PEGjs' => 'alexstrat/PEGjs.tmbundle',
   'PlainTasks' => 'aziz/PlainTasks',
-  'SublimeLinter' => 'SublimeLinter/SublimeLinter',
+  'SublimeLinter' => 'SublimeLinter/SublimeLinter#sublime-text-3',
   'Theme - Soda' => 'buymeasoda/soda-theme'
 }
 
@@ -82,6 +83,14 @@ def cleanup(str)
 end
 
 
+def branch(source)
+  if (source.nil? || source.split(/#/).length != 2)
+    return "master"
+  end
+
+  return source.split(/#/)[1]
+end
+
 def packageDir()
   if RUBY_PLATFORM.downcase.include?("darwin")
     return "#{ENV['HOME']}/Library/Application\ Support/Sublime\ Text\ 3/Packages"
@@ -108,12 +117,13 @@ Dir.entries('.').each do |e|
   next unless File.directory? e
 
   package_name = e.gsub(/.tmbundle$/, '')
-
-  print "* #{package_name}: "
+  source = packages[package_name]
+  b = branch(source)
+  print "* #{package_name} #{source}: "
 
   if packages.delete package_name
     puts "package exists, updating"
-    `cd #{cleanup e}; git pull origin master; cd ..;`
+    `cd #{cleanup e}; git pull; git checkout #{b}; cd ..;`
 
   else
     if providedPackages.index(package_name)
@@ -141,4 +151,9 @@ packages.each do |name, source|
   cmd = "git clone #{github_root}/#{source} #{cleanup name}"
   `#{cmd}`.match(/(revision \d+)/)
   puts "  * checked out #{$1}"
+  b = branch(source)
+  if b != "master"
+    `cd #{cleanup e}; git checkout #{b}; cd ..;`
+    puts "  * checked out #{b}"
+  end
 end
