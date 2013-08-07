@@ -123,7 +123,7 @@ Dir.entries('.').each do |e|
 
   if packages.delete package_name
     puts "package exists, updating"
-    `cd #{cleanup e}; git pull; git checkout #{b}; cd ..;`
+    `cd #{cleanup e}; git pull; git checkout #{b} &> /dev/null; cd ..;`
 
   else
     if providedPackages.index(package_name)
@@ -153,7 +153,7 @@ packages.each do |name, source|
   puts "  * checked out #{$1}"
   b = branch(source)
   if b != "master"
-    `cd #{cleanup e}; git checkout #{b}; cd ..;`
+    `cd #{cleanup e}; git checkout #{b} &> /dev/null; cd ..;`
     puts "  * checked out #{b}"
   end
 end
