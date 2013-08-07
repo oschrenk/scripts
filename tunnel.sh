@@ -34,13 +34,16 @@ get_proxy_state(){
 }
 
 proxy_on(){
-echo "Listening on localhost:$localport. Modifying network settings.."
+  remote_ip_before=`curl -s http://curlmyip.com/`
+
+  echo "Listening on localhost:$localport. Modifying network settings.."
   sudo networksetup -setsocksfirewallproxy Wi-Fi 127.0.0.1 $localport off
   echo "Starting SSH session. Will run in background for 1 day."
   ssh -f tunnel -N -D localhost:$localport sleep 1d
 
-  remote_ip=`curl -s -S --socks5 127.0.0.1:$localport http://curlmyip.com/`
-  echo "Your remote ip is $remote_ip"
+  remote_ip_after=`curl -s -S --socks5 127.0.0.1:$localport http://curlmyip.com/`
+  echo "Your remote ip before connecting through the proxy is $remote_ip_before"
+  echo "Your remote ip after  connecting through the proxy is $remote_ip_after"
   echo "The http_proxy for the terminal has NOT been set."
 }
 
