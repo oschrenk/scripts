@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby -w
+#!/usr/bin/env ruby
 
 # Updates Sublime 2 packages using the Github repositories
 
@@ -14,6 +14,7 @@ packages = {
   'Git' => 'kemayo/sublime-text-2-git#python3',
   'GitGutter' => 'jisaacks/GitGutter',
   'IncDec' => 'rmaksim/Sublime-Text-2-Inc-Dec-Value',
+  'JsFormat' => 'jdc0589/JsFormat',
   'LatexTools' => 'SublimeText/LaTeXTools',
   'LineEndings' => 'SublimeText/LineEndings#st3',
   'MarkdownEditing' => 'ttscoff/MarkdownEditing',
