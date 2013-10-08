@@ -11,17 +11,17 @@ github_root = 'git://github.com'
 packages = {
   # 'name' => 'github_username/reponame[#branch]
   'Color Scheme - Monokai TimmFin' => 'timmfin/monokai-timmfin',
-  'Git' => 'kemayo/sublime-text-2-git#python3',
+  'Git' => 'kemayo/sublime-text-2-git',
   'GitGutter' => 'jisaacks/GitGutter',
   'IncDec' => 'rmaksim/Sublime-Text-2-Inc-Dec-Value',
   'JsFormat' => 'jdc0589/JsFormat',
   'LatexTools' => 'SublimeText/LaTeXTools',
-  'LineEndings' => 'SublimeText/LineEndings#st3',
+  'LineEndings' => 'SublimeText/LineEndings',
   'MarkdownEditing' => 'ttscoff/MarkdownEditing',
   'OpenCL' => 'oschrenk/OpenCL-Syntax',
   'PEGjs' => 'alexstrat/PEGjs.tmbundle',
   'PlainTasks' => 'aziz/PlainTasks',
-  'SublimeLinter' => 'SublimeLinter/SublimeLinter#sublime-text-3',
+  'SublimeLinter' => 'SublimeLinter/SublimeLinter',
   'Theme - Soda' => 'buymeasoda/soda-theme'
 }
 
