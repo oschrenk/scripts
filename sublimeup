@@ -18,12 +18,9 @@ ENV['LC_CTYPE'] = 'en_US.UTF-8'
 
 github_root = 'git://github.com'
 
-packages = Hash[
-  File.read(ENV['HOME']+'/.sublime.packages')
-  .split("\n").map{|i|i.split(' => ')}
-]
+packages = Hash[File.read(ENV['HOME']+'/.sublime.packages').split("\n").map{|i|i.split(' => ')}]
 
-print(packages)
+(packages).each { |key, value| print key + ' = ' + value + "\n" } 
 
 # packages provided by default installation
 providedPackages = [
@@ -84,6 +81,14 @@ def cleanup(str)
 end
 
 
+def repo(source)
+  if (source.nil? || source.split(/#/).length != 2)
+    return source
+  end
+
+  return source.split(/#/)[0]
+end
+
 def branch(source)
   if (source.nil? || source.split(/#/).length != 2)
     return "master"
@@ -113,18 +118,21 @@ rescue Errno::ENOENT
   retry
 end
 
-Dir.entries('.').each do |e|
-  next if e =~ /^\./
-  next unless File.directory? e
+# Update existing
+# Delete unkown
+Dir.entries('.').each do |package_name|
+  next if package_name =~ /^\./
+  next unless File.directory? package_name
 
-  package_name = e.gsub(/.tmbundle$/, '')
   source = packages[package_name]
-  b = branch(source)
+  repo = repo(source)
+  branch = branch(source)
+  
   print "* #{package_name} #{source}: "
 
   if packages.delete package_name
     puts "package exists, updating"
-    `cd #{cleanup e}; git pull; git checkout #{b} &> /dev/null; cd ..;`
+    `cd #{cleanup package_name}; git pull; git checkout #{branch} &> /dev/null; cd ..;`
 
   else
     if providedPackages.index(package_name)
@@ -134,7 +142,7 @@ Dir.entries('.').each do |e|
 
       while answer = gets
         if answer =~ /^y/
-          `rm -rf #{cleanup e}`
+          `rm -rf #{cleanup package_name}`
           puts "  * deleted"
           break
         elsif answer =~ /^(n|$)/
@@ -147,14 +155,18 @@ Dir.entries('.').each do |e|
   end
 end
 
+## Install new
 packages.each do |name, source|
   puts "* #{name} doesn't exist; fetching..."
-  cmd = "git clone #{github_root}/#{source} #{cleanup name}"
-  `#{cmd}`.match(/(revision \d+)/)
-  puts "  * checked out #{$1}"
-  b = branch(source)
-  if b != "master"
-    `cd #{cleanup e}; git checkout #{b} &> /dev/null; cd ..;`
-    puts "  * checked out #{b}"
+  
+  repo = repo(source)
+  branch = branch(source)
+
+  cmd = "git clone #{github_root}/#{repo} #{cleanup name}"
+  branch = branch(source)
+
+  if branch != "master"
+    `cd #{cleanup name}; git checkout #{branch} &> /dev/null; cd ..;`
   end
+  puts "  * checked out #{branch}"
 end
