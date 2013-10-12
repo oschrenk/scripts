@@ -1,29 +1,29 @@
 #!/usr/bin/env ruby
+# Original version for Textmate found on
+# http://blog.bleything.net/pages/mateup
 
-# Updates Sublime 2 packages using the Github repositories
+# Updates Sublime 2/3 packages using their respective Github repositories
 
-# Original version for Textmate found on http://blog.bleything.net/pages/mateup
+# Manage your packages in
+# touch ~/.sublime.packages
+# For each package create a new line like this
+# Git => kemayo/sublime-text-2-git#python3
+#
+# Use ' => ' as a separator between package name and github repository
+# Use '#branch' to pull from a specific branch
+
 
 ENV['LC_ALL']   = nil
 ENV['LC_CTYPE'] = 'en_US.UTF-8'
 
 github_root = 'git://github.com'
-packages = {
-  # 'name' => 'github_username/reponame[#branch]
-  'Color Scheme - Monokai TimmFin' => 'timmfin/monokai-timmfin',
-  'Git' => 'kemayo/sublime-text-2-git#python3',
-  'GitGutter' => 'jisaacks/GitGutter',
-  'IncDec' => 'rmaksim/Sublime-Text-2-Inc-Dec-Value',
-  'JsFormat' => 'jdc0589/JsFormat',
-  'LatexTools' => 'SublimeText/LaTeXTools',
-  'LineEndings' => 'SublimeText/LineEndings#st3',
-  'MarkdownEditing' => 'ttscoff/MarkdownEditing',
-  'OpenCL' => 'oschrenk/OpenCL-Syntax',
-  'PEGjs' => 'alexstrat/PEGjs.tmbundle',
-  'PlainTasks' => 'aziz/PlainTasks',
-  'SublimeLinter' => 'SublimeLinter/SublimeLinter#sublime-text-3',
-  'Theme - Soda' => 'buymeasoda/soda-theme'
-}
+
+packages = Hash[
+  File.read(ENV['HOME']+'/.sublime.packages')
+  .split("\n").map{|i|i.split(' => ')}
+]
+
+print(packages)
 
 # packages provided by default installation
 providedPackages = [
