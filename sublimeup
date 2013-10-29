@@ -20,8 +20,6 @@ github_root = 'git://github.com'
 
 packages = Hash[File.read(ENV['HOME']+'/.sublime.packages').split("\n").map{|i|i.split(' => ')}]
 
-(packages).each { |key, value| print key + ' = ' + value + "\n" } 
-
 # packages provided by default installation
 providedPackages = [
   'ActionScript',
@@ -127,7 +125,7 @@ Dir.entries('.').each do |package_name|
   source = packages[package_name]
   repo = repo(source)
   branch = branch(source)
-  
+
   print "* #{package_name} #{source}: "
 
   if packages.delete package_name
@@ -158,7 +156,7 @@ end
 ## Install new
 packages.each do |name, source|
   puts "* #{name} doesn't exist; fetching..."
-  
+
   repo = repo(source)
   branch = branch(source)
 
