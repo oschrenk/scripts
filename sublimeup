@@ -106,6 +106,7 @@ def packageDir()
 end
 
 dir = packageDir()
+
 begin
   Dir.chdir dir
 rescue Errno::ENOENT
@@ -115,6 +116,8 @@ rescue Errno::ENOENT
   `mkdir -p '#{dir}'`
   retry
 end
+
+puts "Packages directory: #{dir}"
 
 # Update existing
 # Delete unkown
