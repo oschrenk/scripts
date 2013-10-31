@@ -163,7 +163,7 @@ packages.each do |name, source|
   repo = repo(source)
   branch = branch(source)
 
-  cmd = "git clone #{github_root}/#{repo} #{cleanup name}"
+  `git clone #{github_root}/#{repo} #{cleanup name}`
   branch = branch(source)
 
   if branch != "master"
