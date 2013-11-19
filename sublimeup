@@ -11,7 +11,8 @@
 #
 # Use ' => ' as a separator between package name and github repository
 # Use '#branch' to pull from a specific branch
-
+require 'uri'
+require 'tempfile'
 
 ENV['LC_ALL']   = nil
 ENV['LC_CTYPE'] = 'en_US.UTF-8'
@@ -119,22 +120,24 @@ end
 
 puts "Packages directory: #{dir}"
 
-# Update existing
-# Delete unkown
+# Update existing and delete unknown
 Dir.entries('.').each do |package_name|
   next if package_name =~ /^\./
   next unless File.directory? package_name
 
   source = packages[package_name]
-  repo = repo(source)
   branch = branch(source)
 
   print "* #{package_name} #{source}: "
 
   if packages.delete package_name
-    puts "package exists, updating"
-    `cd #{cleanup package_name}; git pull; git checkout #{branch} &> /dev/null; cd ..;`
-
+    print "package exists, ..."
+    if File.directory?("#{dir}/#{package_name}/.git")
+      puts "automatic update via Git"
+      `cd #{cleanup package_name}; git pull; git checkout #{branch} &> /dev/null; cd ..;`
+    else
+      puts "not a Git repository"
+    end
   else
     if providedPackages.index(package_name)
       print "Ignoring provided package\n"
@@ -158,16 +161,35 @@ end
 
 ## Install new
 packages.each do |name, source|
-  puts "* #{name} doesn't exist; fetching..."
+  puts "* #{name} doesn't exist; "
 
-  repo = repo(source)
-  branch = branch(source)
+  uri = URI(source)
 
-  `git clone #{github_root}/#{repo} #{cleanup name}`
-  branch = branch(source)
+  if (uri.scheme == 'http' || uri.scheme == 'https')
+    puts "fetching... from #{uri.to_s}"
 
-  if branch != "master"
-    `cd #{cleanup name}; git checkout #{branch} &> /dev/null; cd ..;`
+    # download package to tmp file
+    # extract to package name
+    fileName = uri.path.gsub(/^\//, "")
+    tmp = Tempfile.new('#{fileName}')
+    `wget -O #{tmp.path} #{uri.to_s}`
+
+    path = "#{dir}/#{name}"
+    `unzip "#{tmp.path}" -d "#{path}"`
+    puts "  * unzipped."
+  else
+    puts "fetching... from #{github_root}/#{repo}"
+
+    repo = repo(source)
+    branch = branch(source)
+
+    `git clone #{github_root}/#{repo} #{cleanup name}`
+    branch = branch(source)
+
+    if branch != "master"
+      `cd #{cleanup name}; git checkout #{branch} &> /dev/null; cd ..;`
+    end
+    puts "  * checked out #{branch}"
   end
-  puts "  * checked out #{branch}"
+
 end
