@@ -63,7 +63,7 @@ if [ "$?" != "0" ]; then
 	exit 5
 fi
 
-rm -f "$DISCID.wav" "$DISCID.cue" "$DISCID.toc"
+rm -f "$DISCID.wav" "$DISCID.toc"
 
 echo
 echo -e "\033[1;32mAll done: $DISCID.flac\033[0;0m"
