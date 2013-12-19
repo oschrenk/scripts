@@ -178,10 +178,10 @@ packages.each do |name, source|
     `unzip "#{tmp.path}" -d "#{path}"`
     puts "  * unzipped."
   else
-    puts "fetching... from #{github_root}/#{repo}"
-
     repo = repo(source)
     branch = branch(source)
+
+    puts "fetching... from #{github_root}/#{repo}"
 
     `git clone #{github_root}/#{repo} #{cleanup name}`
     branch = branch(source)
