@@ -36,9 +36,14 @@ get_proxy_state(){
 proxy_on(){
   remote_ip_before=`curl -s http://curlmyip.com/`
 
-  echo "Listening on localhost:$localport. Modifying network settings.."
-  sudo networksetup -setsocksfirewallproxy "Thunderbolt Ethernet" 127.0.0.1 $localport off
-  sudo networksetup -setsocksfirewallproxy "Wi-Fi" 127.0.0.1 $localport off
+  echo "Listening on localhost:$localport."
+  echo "Modifying network settings.."
+  for device in $(networksetup -listallnetworkservices | sed '1d' | grep -v "Bluetooth")
+  do
+    echo " enabling proxy for $device"
+    sudo networksetup -setsocksfirewallproxy "$device" 127.0.0.1 $localport off
+  done
+  echo "...done"
   echo "Starting SSH session. Will run in background for 1 day."
   ssh -f tunnel -N -D localhost:$localport sleep 1d
 
@@ -49,10 +54,13 @@ proxy_on(){
 }
 
 proxy_off(){
-  echo "Disabling proxy in network settings."
-  sudo networksetup -setsocksfirewallproxystate Wi-Fi off
-  sudo networksetup -setsocksfirewallproxystate "Thunderbolt Ethernet" off
-  echo "Done!"
+  echo "Modifying network settings.."
+  for device in $(networksetup -listallnetworkservices | sed '1d' | grep -v "Bluetooth")
+  do
+    echo " disabling proxy for $device"
+    sudo networksetup -setsocksfirewallproxystate "$device" off
+  done
+  echo "... done!"
 }
 
 kill_all(){
