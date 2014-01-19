@@ -38,6 +38,7 @@ proxy_on(){
 
   echo "Listening on localhost:$localport."
   echo "Modifying network settings.."
+  IFS=$(echo -en "\n\b")
   for device in $(networksetup -listallnetworkservices | sed '1d' | grep -v "Bluetooth")
   do
     echo " enabling proxy for $device"
@@ -55,6 +56,7 @@ proxy_on(){
 
 proxy_off(){
   echo "Modifying network settings.."
+  IFS=$(echo -en "\n\b")
   for device in $(networksetup -listallnetworkservices | sed '1d' | grep -v "Bluetooth")
   do
     echo " disabling proxy for $device"
