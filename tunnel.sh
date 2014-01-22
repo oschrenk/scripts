@@ -38,6 +38,10 @@ proxy_on(){
 
   echo "Listening on localhost:$localport."
   echo "Modifying network settings.."
+
+  # Ask for the administrator password upfront
+  sudo -v
+
   IFS=$(echo -en "\n\b")
   for device in $(networksetup -listallnetworkservices | sed '1d' | grep -v "Bluetooth")
   do
@@ -56,6 +60,10 @@ proxy_on(){
 
 proxy_off(){
   echo "Modifying network settings.."
+
+  # Ask for the administrator password upfront
+  sudo -v
+
   IFS=$(echo -en "\n\b")
   for device in $(networksetup -listallnetworkservices | sed '1d' | grep -v "Bluetooth")
   do
