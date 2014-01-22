@@ -37,7 +37,7 @@ proxy_on(){
   remote_ip_before=`curl -s http://curlmyip.com/`
 
   echo "Listening on localhost:$localport."
-  echo "Modifying network settings.."
+  echo "Modifying network settings..."
 
   # Ask for the administrator password upfront
   sudo -v
@@ -45,7 +45,7 @@ proxy_on(){
   IFS=$(echo -en "\n\b")
   for device in $(networksetup -listallnetworkservices | sed '1d' | grep -v "Bluetooth")
   do
-    echo " enabling proxy for $device"
+    echo " - enabling proxy for $device"
     sudo networksetup -setsocksfirewallproxy "$device" 127.0.0.1 $localport off
   done
   echo "...done"
@@ -59,7 +59,7 @@ proxy_on(){
 }
 
 proxy_off(){
-  echo "Modifying network settings.."
+  echo "Modifying network settings..."
 
   # Ask for the administrator password upfront
   sudo -v
@@ -67,7 +67,7 @@ proxy_off(){
   IFS=$(echo -en "\n\b")
   for device in $(networksetup -listallnetworkservices | sed '1d' | grep -v "Bluetooth")
   do
-    echo " disabling proxy for $device"
+    echo " - disabling proxy for $device"
     sudo networksetup -setsocksfirewallproxystate "$device" off
   done
   echo "... done!"
