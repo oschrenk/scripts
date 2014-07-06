@@ -8,6 +8,8 @@
 # remoteuser='user'
 # remoteproxy='example.com'
 
+trap ctrl_c INT
+
 # Get the min and max system-available ports.
 lowerport=`sysctl net.inet.ip.portrange.first | cut -d " " -f 2`
 upperport=`sysctl net.inet.ip.portrange.last | cut -d " " -f 2`
@@ -19,9 +21,14 @@ remoteport="22"
 
 usage(){
 echo ""
-echo "Usage: proxy [on|off|killall|shutdown|no_args]"
-echo "Proxy is a proxy settings toggle script for OSX"
-echo "Proxy initiates an SSH tunnel and then enables a Socks proxy"
+echo "Usage: tunnel.sh [on|off|killall|shutdown|no_args]"
+echo "tunnel.sh is a proxy settings toggle script for OSX"
+echo "tunnel.sh initiates an SSH tunnel and then enables a Socks proxy"
+}
+
+function ctrl_c() {
+  echo "SIGINT. Exiting."
+  exit $?
 }
 
 unknown_input(){
