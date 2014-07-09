@@ -1,0 +1,1614 @@
+#!/bin/bash
+
+###############################################################################
+###
+#M# cd2ogg 3.3 :: (c) 2010 Duncan Brown (http://cd2ogg.sourceforge.net)
+###
+#R# WARNING : if you're migrating to a version 3.0 AND ABOVE from a 2.X or
+#R#           below *PLEASE REVIEW THE COMMANDS* as many flags have changed.
+#R#
+#R# cd2ogg is a script to rip and encode CDs with minimal user intervention
+#R# with a wide array of popular formats supported, including Ogg/Vorbis, MP3 &
+#R# FLAC
+#R#
+#R# You will only be prompted for information on either clarification on the
+#R# CD database information or if the CD isn't found in freedb 
+#R#
+#R# Overview of features :
+#R#
+#R#   - Automatic CD track information lookup
+#R#   - Adds track info tags into audio file for use on audio jukeboxes
+#R#   - Allows mass ripping of your CD collection with minimal user input
+#R#     - Ability to rip tracks from CD and encode at a later time
+#R#       (This allows you to just copy the audio to the hard drive, we create
+#R#        scripts that will automatically encode your ogg files with the
+#R#        informational tags and remove the CD audio file at completion)
+#R#   - Highly configurable
+#R#   - Works just fine behind proxies
+###
+###############################################################################
+###
+#L# License :
+#L#
+#L#    This program is free software; you can redistribute it and/or modify
+#L#    it under the terms of the GNU General Public License as published by
+#L#    the Free Software Foundation; either version 2 of the License, or
+#L#    (at your option) any later version.
+#L#
+#L#    This program is distributed in the hope that it will be useful,
+#L#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#L#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#L#    GNU General Public License for more details.
+#L#
+#L#    http://www.gnu.org/licenses/gpl.txt
+#L#
+###############################################################################
+###
+#O# Command Line Flags :
+#O#
+#O#   Actions (must specify at least one) :
+#O#
+#F#	-e	: rip and encode the CD to ogg/mp3/flac files (previously the
+#O#		  default behavior, this now has to be explicitly called)
+#O#
+#F#	-E	: rip the CD to .wav files for later encoding *
+#O#
+#F#	-m	: mass rips CDs to .wav files for later encoding *
+#O#
+#F#	-t #	: rip only selected track numbers
+###		   example :
+#E#		    cd2ogg -t "11 12 15"
+#O#
+#F#	--enc	: go through cd2ogg encoding scripts and run them one after the
+#O#		  other.  this is for use after the -m or -E option
+#O#
+#O#	--daemon : keep checking for cd2ogg encoding scripts and run them one
+#O#		   after the other without any output to stdout.  this is for
+#O#		   use after the -m or -E option
+###		    example :
+#E#		     setsid cd2ogg --daemon
+#O#
+#O#		* - creates encoding scripts for later use
+#O#
+#O#   File Formats :
+#O#
+#F#	--mp3	: encode audio stream as mp3
+###		   example :
+#E#		    cd2ogg -e --mp3
+#O#
+#F#	--ogg	: encode audio stream as ogg/vorbis
+###		   example :
+#E#		    cd2ogg -e --ogg
+#O#
+#F#	--flac	: encode audio stream as flac
+###		   example :
+#E#		    cd2ogg -e --flac
+#O#
+#F#	--flogg	: encode audio stream as flac with streaming ogg transport layer
+###		   example :
+#E#		    cd2ogg -e --flogg
+#O#
+#O#   Ripping and Encoding Options :
+#O#
+#F#	-b	: specify custom bitrate
+###		   example :
+#E#		    cd2ogg -eb 192
+#O#
+#F#	-k	: keep steady bitrate (good for internet streams)
+#O#
+#F#	-K	: do not use fixed bitrates (may be higher quailty)
+#O#
+#F#	-l	: downmix to low-fi mono encoding
+#O#
+#F#	-L	: do not downmix to low-fi mono encoding
+#O#
+#F#	-n	: normalize tracks (requires normalize)
+#O#
+#F#	-N	: do not normalize tracks (does not require normalize)
+#O#
+#F#	-T #	: skip selected track numbers
+###		   example :
+#E#		    cd2ogg -eT "11 12 13"
+#O#
+#F#	-v	: very paranoid ripping (in case of scratches/etc)
+#O#
+#F#	-V	: do not use paranoid ripping (faster, possible errors)
+#O#
+#F#	-w	: do not remove .wav file (with -m or -n) after encoding
+#O#
+#F#	-W	: removes .wav file after encoding
+#O#
+#O#   CD, ID3 and File Information Options :
+#O#
+#F#	-a	: specify a custom artist name
+###		   example :
+#E#		    cd2ogg -ea "The Lawnmowers"
+#O#
+#F#	-c	: specify a custom CD album name
+###		   example :
+#E#		    cd2ogg -ec "Fearless"
+#O#
+#F#	-g	: specify a custom genre
+###		   example :
+#E#		    cd2ogg -eg "rock"
+#O#
+#O#	-G	: disable use of genre tagging
+#O#
+#F#	-y	: specify a custom CD release year
+###		   example :
+#E#		    cd2ogg -ey 2002
+#O#
+#O#	--list	: look up cddb information and list it
+###		   example :
+#E#		    cd2ogg --list -d /dev/cdrom
+#O#
+#O#   File and Device Options :
+#O#
+#F#	-d	: use a custom cdrom device
+###		   example :
+#E#		    cd2ogg -ed /dev/cdrom2
+#O#
+#F#	-j	: ejects cdrom device upon completion
+#O#
+#F#	-J	: does not eject cdrom device upon completion
+#O#
+#O#	-M	: specify where to save the mass encode scripts (from -E and -m)
+###		   example :
+#E#		    cd2ogg -M "$HOME/cd2ogg_scripts"
+#O#
+#F#	-s	: specify where and how to save files you're encoding
+#O#		  keywords : ARTIST ALBUM TNAME TNUM
+###		   example :
+#E#		    cd2ogg -es "~/music/ARTIST/ALBUM/ARTIST-ALBUM-TNUM-TNAME"
+#E#		    cd2ogg -es "~/music/ARTIST-ALBUM/(TNUM) TNAME"
+#O#
+#F#	-r	: replace caps and spaces in filenames
+#O#		  call a second time to remove punctuation in file name
+#O#
+#F#	-R	: do not replace caps and spaces in filenames
+#O#
+#O#   Network Options :
+#O#
+#F#	-q	: query a custom cddb server
+#E#		  NOTE: this requires the cddb server to use the standard cgi
+#E#		  cddb url (~cddb/cddb.cgi)
+###		   example :
+#E#		    cd2ogg -eo "cddb.myisp.com"
+#O#
+#F#	-p	: specify custom proxy server
+###		   example :
+#E#		    cd2ogg -ep "http://proxy.mywork.com:80/"
+#O#
+#F#	-P	: do not use a proxy
+#O#
+#O#   Misc Options
+#O#
+#O#	--quiet : suppress all output
+#O#
+#O#   Saving and Viewing Settings :
+#O#
+#F#	--info	: display your current settings
+#O#
+#F#	--save	: save current command line as default
+#E#		  NOTE : this also takes into consideration your already saved
+#E#		         defaults unless you've explicitly shut them off with
+#E#		         the capital letter option associated with them
+#O#
+#O#   Help / Documentation :
+#O#
+#H#	-h	: help with all available commands and options
+#H#
+#H#	-H	: more verbose help, including examples
+#H#
+#F#	--readme	: view the notes for this script
+#O#
+#F#	--license	: view the license for this script
+#O#
+#F#	--changelog	: view the changelog for this script
+#O#
+#F#	--version	: show the version of cd2ogg we're running
+#O#
+#E# More complex examples :
+#E#
+#E#	Encode CD without normalizing, eject tray when done, lo-fi mono,
+#E#	managed bitrate, no paranoia, as mp3 and use CD device /dev/cdrom2
+#E#
+#E#	  cd2ogg --mp3 -ejklNV -d /dev/cdrom2
+#E#
+#E#	Same as above, but we're just saving these as defaults without encoding
+#E#
+#E#	  cd2ogg --mp3 -jklNV -d /dev/cdrom2 --save
+#E#
+#E#	You can combine the two above commands to encode and save settings
+#E#
+#E#	  cd2ogg --mp3 -ejklNV -d /dev/cdrom2 --save
+#E#
+#E#	Use http://proxy.work.com as a proxy and only rip track #12
+#E#
+#E#	  cd2ogg -p "http://proxy.work.com:80/" -t 12
+#E#
+#E#	Use the custom file name of "(TNUM) TNAME" which could translate into :
+#E#      "$HOME/The Lawnmowers/Fearless/(04) College Dropout.ogg"
+#E#
+#E#	  cd2ogg -e -s "$HOME/music/ARTIST/ALBUM/(TNUM) TNAME"
+###
+###############################################################################
+#R#
+#R# Bug reporting :
+#R#
+#R#	Bug reports are ALWAYS welcome and will be dealt with as soon as I can
+#R#	work on them.
+#R#
+#R# CD info :
+#R#
+#R#	This is obtained through http freedb lookups via curl
+#R#
+#R# Default filename convention :
+#R#
+#R#	cd artist - cd name - track number - track name.ogg
+#R#
+#R#	example :
+#R#	  The Rentals - Return Of The Rentals - 05 - Please Let That Be You.ogg
+#R#
+#R# Default directory convention :
+#R#
+#R#	[music_root]/cd artist/cd name
+#R#
+#R#	example :
+#R#	  ~/music/The Rentals/Return Of The Rentals
+#R#
+#R# Additional software used :
+#R#
+#R#	program      fedora_centos       ubuntu_package   slackware_package
+#R#	-----------------------------------------------------------------------
+#R#	curl         curl                curl             ???
+#R#	oggenc       vorbis-tools        vorbis-tools     ???
+#R#	cdparanoia   cdparanoia          cdparanoia       ???
+#R#	bc           bc                  bc               ???
+#R#	cd-discid    cd-discid (extras)  cd-discid        ???
+#R#	lame*        lame                lame             ???
+#R#	flac*        flac                flac             ???
+#R#	normalize*   normalize           normalize-audio  ???
+#R#
+#R#	  * - Optional
+#R#
+#R# Installation :
+#R#
+#R#	There are two ways to install cd2ogg: manually copying over the script
+#R#	and other sundries to their appropriate places or running the included
+#R#	installation script.  I have also provided a cd2ogg.spec file to
+#R#	create an RPM from the files placed by the installation script.
+#R#
+#R# Notes :
+#R#
+#R#	- Please ensure that you have proper read access to the cd-rom device
+###
+###############################################################################
+###
+#C# Change log :
+#C#
+#C#	3.3
+#C#       - added ripping without freedb info
+#C#	  - tr has finally replaced dos2unix
+#C#	  - removed punctuation from encoding scripts
+#C#	  - general script cleanup in certain bits
+#C#
+#C#	3.2
+#C#	  - bugs squished
+#C#         - mp3 encoding actually works
+#C#	  - options added
+#C#	    --spec will now create a cd2ogg.spec file in your current directory
+#C#
+#C#	3.1
+#C#	  - added a few extra colors into output
+#C#	  - options added
+#C#	    -G now disables any genre tagging
+#C#	    --list will perform a cddb lookup and display disc information
+#C#	  - features added
+#C#	    - 'various artists' albums will now tag the individual tracks with
+#C#	      the proper artist name as long as the freedb data is properly
+#C#	      formatted (Artist / Song) and the main artist listed is 'Various'
+#C#	      or 'various'.  If the main artist isn't listed as Various then
+#C#	      you can use "-a Various" to override
+#C#	  - bugs squished
+#C#	    - the new oggenc doesn't like the way i was adding comments and
+#C#	      would complain about multiple output files specified.  fixed
+#C#
+#C#	3.0 (the "i can't believe it's been a year and a half" release) :
+#C#	  - changed options to more logical options, these probably won't
+#C#	    change again for the life of cd2ogg
+#C#	  - a few small bugs were squished
+#C#	    - checking genre against lame list to ensure lame won't freak out
+#C#	    - "&" or "/" in the track information (cd, artist and track)
+#C#	  - abilities added
+#C#	    - flac encoding (with optional ogg transport wrapper)
+#C#	  - abilities dropped
+#C#	    - interactive mode
+#C#	    - gnome/zenity integration
+#C#	  - options added (subject to change by 3.0 release)
+#C#	    --flac encodes files as flac
+#C#	    -g now specifies a custom genre
+#C#	    -M now specifies a custom location for mass encoding scripts
+#C#	    --daemon will set the script into a quiet mode to encode scripts in
+#C#	      the background
+#C#	  - options changed into other options (may change by 3.0 final release)
+#C#	    --enc is now used for mass encoding (was -g)
+#C#	    --ogg now specifies 'encode as ogg' (was default)
+#C#	    --mp3 now specifies 'encode as mp3' (was -3)
+#C#	    -d is now used to specify the cdrom device (was -u)
+#C#	    -y is now used to change the year (was -d)
+#C#	    -q is now used to select a custom freedb server (was -o)
+#C#	    -s now specifies BOTH the storage directory and file name
+#C#	    --info is now used to show your current settings
+#C#	    --save is now used to save your current settings
+#C#	  - options dropped (subject to change by 3.0 release)
+#C#	    --inter went away with simplification
+#C#	    --zbge went away with simplification
+#C#	    --zenc went away with simplification
+#C#	    --xterm went away with simplification
+#C#	  - other changes
+#C#	    - more verbose description of output format
+#C#
+#C#	2.4.18 :
+#C#	  - bug fixes
+#C#	    - typo messed up track numbering in id3 for lame encoded tracks
+#C#
+#C#	2.4.16 :
+#C#	  - changes
+#C#	    - curl is used instead of wget
+#C#	  - bug fixes
+#C#	    - zenity popup handles multi-matches better
+#C#
+#C#	2.4.14 :
+#C#	  - options modified
+#C#	    --zenc now shows the CD name in the tooltip
+#C#
+#C#	2.4.12 :
+#C#	  - installation
+#C#	    - installation script now checks for needed packages in fedora and
+#C#	      ubuntu
+#C#	  - options added
+#C#	    --version shows the version of cd2ogg you're running
+#C#	  - options modified
+#C#	    --zenc now has an option to play CD via gnome-cd
+#C#	    -3 for mp3 encoding can now be saved as default codec
+#C#	  - options changed
+#C#	    -i is now --inter for interactive mode
+#C#
+#C#	2.4.10 :
+#C#	  - preliminary point and click work
+#C#	  - options added
+#C#	    - gnome integration
+#C#	      --zbge will put cd2ogg into the background until it detects
+#C#	             encoding scripts and then places an icon in the
+#C#	             notification tray
+#C#	      --zenc places an icon in the system tray prompting you to encode a
+#C#	             CD when inserted
+#C#
+#C#	2.4.8 :
+#C#	  - options added (none are available in interactive mode)
+#C#	    -v enables error correcting (on by default)
+#C#	    -V disables error correcting (massive speed increase)
+#C#	      - encoding bis, _new transistor heroes_ on amd 64 3200+
+#C#	        - paranoia    : 24m 55s (no normalize)
+#C#	        - no paranoia : 08m 04s (no normalize)
+#C#	    -3 encodes as mp3 instead of ogg
+#C#	    --xterm starts up cd2ogg in an xterm
+#C#	      - now the default behavior when called from menu items
+#C#	  - options removed
+#C#	    - -x is now covered by --xterm
+#C#	  - ~/.cd2oggrc is now known as ~/.cd2ogg/cd2ogg_config
+#C#	  - ~/.cd2ogg_history is now known as ~/.cd2ogg/cd2ogg_history
+#C#	  - changed the way the mass encode scripts work
+#C#	    - normalize runs BEFORE encoding, giving you a more even result
+#C#	    - only remove the source .wav file after a successful encoding
+#C#	    - mass encode script removes itself, cd2ogg doesn't
+#C#	      - this allows easy integration with external mechanisms
+#C#	    - if $cd2ogg_quiet is set, we won't output our status
+#C#	  - minor stuff
+#C#	    - changed find statement to get rid of notice in fedora core 4
+#C#	    - install script update (Cyrille Bagard <ocbxxi at yahoo dot fr>)
+#C#	      - now you have the option to specify the base dir for all other
+#C#	        installation options (/usr/local vs. /usr)
+#C#	  - bug squishes
+#C#	    - detects debian and runs normalize-audio instead of normalize
+#C#
+#C#	2.4.6 :
+#C#	  - options modified
+#C#	    - mass ripping now creates a seperate script for each track
+#C#	      - this will be better utilized in the future by the daemon mode
+#C#	  - functions added
+#C#	    - an ~/.cd2ogg_history file will now be created that lists the
+#C#	      freedb CD signatures of the cds you've processed
+#C#	      - this will be utilized by the future automatic CD collection
+#C#	        website creation mode
+#C#	      - disable this by sym-linking /dev/null to this file
+#C#	        CD ~ && ln -s /dev/null .cd2ogg_history
+#C#	  - bug fixes
+#C#	    - $whoami and $hostname were called by functions before they were
+#C#	      defined
+#C#	  - bugs fixed by cd2ogg users!  whoot!
+#C#	    - long track names (Cyrille Bagard <ocbxxi at yahoo dot fr>)
+#C#	      - where a long track name takes up multiple lines in a freedb info
+#C#	        file became truncated
+#C#	    - man page (Hurlin Clément <smelc at inbox dot lv>)
+#C#	      - man page did not render properly in kde help browser
+#C#	  - README re-worded slightly
+#C#
+#C#	2.4.4 :
+#C#	  - options modified
+#C#	    - --readme no longer displays options nor change log
+#C#	  - re-organized and cleaned up the README
+#C#	  - fixed issue with "s in filename, changed to ''
+#C#
+#C#	2.4.2 :
+#C#	  - options added
+#C#	    --changelog displays the change log
+#C#	  - options modified
+#C#	    -t now can be used for multiple tracks
+#C#	    --readme only paginates when in interactive mode
+#C#
+#C#	2.4.1 :
+#C#	  - fixed an order issue when writing the cd_info.txt file
+#C#
+#C#	2.4 :
+#C#	  - options added
+#C#	      -a specifies a custom artist name
+#C#	      -c specifies a custom CD name
+#C#	      -d specifies a custom CD release year
+#C#	      -f specifies a custom CD storage dir
+#C#	      -H shows help with examples
+#C#	      -k for fixed/managed bitrate encoding
+#C#	      -l lo-fi mono encoding
+#C#	      -o now specifies the custom cddb server
+#C#	      -r now tells the script to replace spaces and capital letters
+#C#	      -u now specifies the custom cdrom device
+#C#	      -z your command line options will be saved as the default setting
+#C#	      --readme views the notes for the script
+#C#	      --license views the license for this script
+#C#	  - options added that turn off possible defaults
+#C#	      -J prevents ejecting the cdrom drive
+#C#	      -K prevents fixed bitrate encoding
+#C#	      -L prevents lo-fi mono encoding
+#C#	      -N prevents normalization
+#C#	      -P prevents use of a http proxy
+#C#	      -R prevents replacement of spaces and capital letters
+#C#	      -W do not leave the source .wav after encoding
+#C#	  - options removed
+#C#	      -r to just rip a CD without encoding.  I needed a flag (i ran out)
+#C#	         and -m did the same thing with a prompt, and you can CTRL-C out
+#C#	  - installation script now available in .tar.gz
+#C#	      - also builds normalize & cd-discid if needed and gcc is present
+#C#	  - inclusion of man page, menu items and icons.
+#C#	  - no longer prompted to configure if ~/.cd2ogg is not found, the
+#C#	    defaults will be used.  the user is notified to configure with -i
+#C#	  - track length is now computed and displayed while ripping/encoding
+#C#	    tracks
+#C#	  - less output when no options are specified
+#C#	  - fixed a goof with mass rip where you won't be verbally prompted for
+#C#	    the next CD if you were already notified for the previous cd
+#C#	  - in interactive mode, 'z' replaced 'c' to save config
+#C#	  - simpler output when executing batch encode scripts
+#C#	  - combined README and license info into script
+#C#	  - incorporated new flags into the interactive menu
+#C#	  - creation of .m3u playlists
+#C#	  - interactive mode doesn't require a carriage return when selecting
+#C#	    an option
+#C#	  - reordered the actions so you weren't prompted about missing
+#C#	    dependencies unless you're attempting to perform an operation
+#C#	  - added examples to README and -H help
+#C#	  - changed verbage in help to be more clear
+#C#	  - fixed problems with / in track names by replacing it with \
+#C#	  - mass rip & custom artist/album/dat conflict, no longer permitted
+#C#	  - typo corrections
+#C#	  - supplied .spec file for cd2ogg with .tar.gz release
+#C#
+#C#	2.2 :
+#C#	  - options added
+#C#	      -b specifies the bitrate to use
+#C#	      -d specifies the cdrom device to use
+#C#	      -e rips and encodes the track
+#C#	      -f use a custom cddb server
+#C#	      -i go into an simplistic menu system
+#C#	      -j eject cdrom drive upon completion
+#C#	      -n to normalize tracks
+#C#	      -p use a custom proxy server
+#C#	      -s save your music in an alternate directory
+#C#	      -w leaves the source .wav file after encoding
+#C#	      -y displays your current configuration
+#C#	  - menu system added
+#C#	  - gnome and kde icons added for menu system
+#C#	  - screen information is now color coded
+#C#	    blue  : notice
+#C#	    green : question
+#C#	    red   : error or problem detected
+#C#	  - now uses cd-discid for disc identification
+#C#	  - now theoretically compatible with any *nix variant
+#C#	    (only linux has been tested)
+#C#	  - now uses getopts for more complex flags, so the command line
+#C#	      cd2ogg -e -n -w
+#C#	    can now be run as
+#C#	      cd2ogg -enw
+#C#	  - temporary file usage moved from ~/.cd2ogg to /tmp/cd2ogg-$USER
+#C#	    (this allows tmpwatch to clean out old files when it's time)
+#C#	  - x-window pausing works alot better and more regularly
+#C#	  - cleaned up the script and made it more flexible
+#C#	  - removed beep because it was more flash than function
+#C#
+#C#	2.1 :
+#C#	  - configures itself to your preferences upon initial run
+#C#	    (no more editing script to change preferences)
+#C#	  - gnome and kde icons in the menus
+#C#	  - updates the title of the window with disc info
+#C#	  - first one released with rpm support
+#C#	  - released with yum/apt repository
+#C#	  - uses the beep program for more interesting aural notification
+#C#
+#C#	2.0 :
+#C#	  - CD rip streams directly to ogg encoding
+#C#	    - faster 'from cd-to-ogg' conversion
+#C#	    - cleaner output to screen
+#C#	    - lower disk space usage (no temporary .wav file anymore)
+#C#	  - mass rip mode.  creates scripts for encoding and comments
+#C#	  - option to run mass rip scripts and delete them upon completion
+#C#	  - minimized output to make things cleaner looking
+#C#	  - alerts you to errors, but only at predetermined error counts
+#C#	  - cleaned up output
+#C#	  - added single track ability
+#C#	  - support of proxies for freedb CD info lookups
+#C#	  - displays time to rip and encode a track
+#C#	  - displays time to complete entire operation
+#C#	  - fixed issues with funky characters in track names (bjork albums/etc)
+#C#	  - checks to see if you have all the prerequisite executables
+#C#	  - cdda2wav is no longer suported
+#C#
+#C#	1.3 :
+#C#	  - first public release (gpl)
+#C#	  - oggenc now adds track information to ogg files
+#C#	  - added ability to mass rip cds to .wav only
+#C#	  - added -h flag to bring up help
+#C#	  - compiled discid for redhat 9 so you don't have to!
+#C#
+#C#	1.2 :
+#C#	  - changed CD extractor to cdparanoia (friendlier output)
+#C#	    - cdda2wav is still available, you need to uncomment the line
+#C#	      and comment out cdparanoia
+#C#
+#C#	1.1.1 :
+#C#	  - added ability to handle inexact cddb disc matches
+#C#
+#C#	1.1 :
+#C#	  - added ability to handle multiple cddb disc matches
+#C#
+#C#	1.0 :
+#C#	  - initial release
+#C#	  - basic cddb functionality and ripping/encoding
+###
+###############################################################################
+###
+### A Standard RPM Spec File
+###
+#P# Summary: Command-line utility to convert audio CDs to ogg/vorbis streams
+#P# Name: cd2ogg
+#P# Version: VERSION
+#P# Release: 1
+#P# License: GNU
+#P# Group: Applications/Multimedia
+#P# URL: http://cd2ogg.sourceforge.net
+#P# BuildArch: noarch
+#P# Requires: coreutils, cdparanoia, curl, vorbis-tools, cd-discid, flac
+#P#
+#P# %undefine __check_files
+#P#
+#P# %description
+#P# BASH shell script that will take your audio CDs and create ogg/flac/mp3 files
+#P# complete with comments.  Highly configurable (including most options available
+#P# through GRIP, but through the command line) and will also do mass ripping with
+#P# the option to encode .wav files at a later date via scripts that are
+#P# automatically generated.  Automated CD lookup via freedb.org support included.
+#P#
+#P# %files
+#P# %defattr(-, root, root, 0755)
+#P# %{_docdir}/cd2ogg-%{version}
+#P# %{_bindir}/cd2ogg
+#P# %{_mandir}/man1/cd2ogg.1.gz
+###
+###############################################################################
+###
+### Standard Man Page
+###
+#D# .\" manpage created with vi and a bit of patient reading
+#D# .\" (c) YEAR Duncan Brown
+#D# .TH man 1 "LONGDATE" "VERSION" "cd2ogg"
+#D# .SH NAME
+#D# cd2ogg \- a script to rip and encode CDs with minimal user intervention
+#D# .SH SYNOPSIS
+#D# .BR cd2ogg
+#D# [ options ]
+#D# .SH DESCRIPTION
+#D# cd2ogg is a robust shell script that will copy your audio CD and make compressed ogg/vorbis, mp3 and flac files.
+#D#
+#D# Automatic CD track information lookup
+#D#
+#D# Adds track info tags into audio file for use on audio jukeboxes
+#D#
+#D# Allows mass ripping of your CD collection with minimal user input
+#D#
+#D# Ability to rip tracks from CD and encode at a later time (this allows you to just copy the audio to the hard drive, we create scripts that will automatically encode your ogg files with the informational tags and remove the CD audio file at completion)
+#D#
+#D# User configurable
+#D#
+#D# Works just fine behind proxies
+#D# .SH NOTE
+#D# Ensure that you have proper read access to the CD-ROM device before using
+#D# .SH OPTIONS
+#D# .TP
+#D# Please run cd2ogg -h for all command line options
+#D# .SH EXAMPLES
+#D# .P
+#D# Please run cd2ogg -H for all command line options and examples
+#D#
+#D# .SH FILES
+#D# .P
+#D# .I ~/.cd2ogg/cd2ogg_config
+#D# .I ~/.cd2ogg/cd2ogg_history
+#D# .I ~/cd2ogg_scripts
+#D# .SH SEE ALSO
+#D# .BR cdparanoia (1),
+#D# .BR lame (1),
+#D# .BR oggenc (1),
+#D# .BR normalize (1),
+#D# .BR curl (1),
+#D# .BR flac (1)
+#D#
+#D#  http://www.xiph.org : home of the ogg/vorbis and flac codecs as well as cdparanoia
+#D#  http://lame.sourceforge.net : home of the lame mp3 encoder
+#D#  http://www.freedb.org : home of a free CD information lookup service
+#D# .SH BUGS
+#D# No known bugs at this time.
+#D# .SH AUTHOR
+#D# Duncan Brown (cd2ogg@duncanbrown.org)
+#D# .SH HOMEPAGE
+#D# http://cd2ogg.sourceforge.net
+#D# .SH LICENSE
+#D# This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+#D#
+#D# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+#D#
+#D# http://www.gnu.org/licenses/gpl.txt
+###
+###############################################################################
+
+###############################################################################
+# variables
+###############################################################################
+
+# what does this script require?
+requirements="cd-discid cdparanoia curl bc"
+
+# the cgi we're going to hit on $cddb_server
+cddb_cgi='~cddb/cddb.cgi'
+
+# what longtime our script started
+sstart=$(date +%s)
+
+# set our track ripped count at 0 for future use
+track_count=0
+
+# where everything gets saved
+save_dir="$HOME/.cd2ogg"
+
+# the lockfile for daemon mode
+lockfile="$save_dir/cd2ogg_daemon.lock"
+
+# daemon log file
+daemon_log="$save_dir/cd2ogg_daemon.log"
+
+# what we were called as
+cd2ogg_name=$(basename $0)
+
+# where we keep everything while we're working
+workdir=/tmp/cd2ogg-$(whoami)/$(date +%s).$RANDOM
+cddb_verbose=$workdir/cddb_verbose
+cddb_title=$workdir/cddb_title
+
+###############################################################################
+# color functions and echo alias
+#
+# these inject some eye candy for the text mode fun
+###############################################################################
+
+c_echo() {
+ [ ! "$cd2ogg_quiet" ] && echo "$*"
+}
+
+cc_echo() {
+ [ ! "$cd2ogg_quiet" ] && echo -e "$(echo "$*" | sed -e s/':'/'\\033[1;30;48m:\\033[0m'/g)"
+}
+
+cn_echo() {
+ [ ! "$cd2ogg_quiet" ] && echo -n "$*"
+}
+
+c_error() {
+  echo -e " \033[0;31;48m:\033[1;31;48m:\033[0m$1"
+}
+
+c_qst() {
+  echo -e " \033[0;32;48m:\033[1;32;48m:\033[0m$1"
+}
+
+c_notice() {
+  echo -e " \033[0;34;48m:\033[1;34;48m:\033[0m$1"
+}
+
+###############################################################################
+# check for options and show splash
+###############################################################################
+
+# show our splash
+cd2ogg_splash() {
+ [ ! "$cd2ogg_quiet" ] && {
+  echo
+  egrep '^#M#' $0 | cut -d'#' -f3- | sed s/'cd2ogg'/"$cd2ogg_name"/
+  echo
+ }
+}
+
+# we require at least one option to be passed
+[ ! "$cd2ogg_quiet" ] && [ -z "$*" ] && cd2ogg_splash && egrep '^#H#' $0 | cut -d'#' -f3- && exit 255
+
+# decide our default behavior
+[ "$cd2ogg_name" = "cd2ogg" ] && encoding=ogg
+[ "$cd2ogg_name" = "cd2mp3" ] && encoding=mp3
+[ "$cd2ogg_name" = "cd2flac" ] && encoding=flac
+[ "$cd2ogg_name" = "cd2flogg" ] && encoding=flogg
+
+###############################################################################
+# regular functions
+###############################################################################
+
+# this will alert our user to the completion of the script
+alert() {
+ [ ! "$cd2ogg_quiet" ] && {
+  cn_echo 
+  sleep 1
+  cn_echo 
+  sleep 1
+  cn_echo 
+ }
+}
+
+# run the batch encoding scripts and delete them
+batch_encode() {
+ s_title "mass encoding"
+ find "$enc_scripts/" -maxdepth 1 -mindepth 1 -type f | sort | while read line
+ do
+  "$line"
+ done
+ [ "$cycle_batch" ] && sleep 60 && batch_encode
+ cd2ogg_exit 0
+}
+
+# we must exit, so do it gracefully
+cd2ogg_exit() {
+ c_echo
+ # we must wait for input before exiting if required
+ [ "$wait_on_exit" ] && read -s -n 1 -p "$(c_qst) All operations completed, please press any key to exit"
+
+ #[ "$workdir" -a -d "$workdir" ] && rm -rf "$workdir"
+ exit $1
+}
+
+# used to generate files used in the packing and shipping of cd2ogg
+cd2ogg_genfiles() {
+ cd2ogg_readme > README
+ cd2ogg_changelog > CHANGELOG
+ cd2ogg_help_verbose > OPTIONS
+ cd2ogg_spec
+ cd2ogg_man
+ cd2ogg_gpl > COPYING
+}
+
+# used to generate files used in the packing and shipping of cd2ogg
+cd2ogg_gensite() {
+ egrep '^#M#' $0 | cut -d'#' -f3- > VERSION
+ cd2ogg_readme > README
+ cd2ogg_changelog > CHANGELOG
+ cd2ogg_help_verbose > OPTIONS
+}
+
+# show the license information
+cd2ogg_gpl() {
+  egrep '^#L#' $0 | cut -d'#' -f3-
+}
+
+# show the license information
+cd2ogg_changelog() {
+  egrep '^#C#' $0 | cut -d'#' -f3-
+}
+
+# display the help dialogue
+cd2ogg_help() {
+ # a pregrep for # speeds this up by about .5s on a pIII 700
+ grep '#' $0 | egrep '^#H#|^#F#|^#O#' | cut -d'#' -f3-
+}
+
+# display the help dialogue with examples
+cd2ogg_help_verbose() {
+ grep '#' $0 | egrep '^#H#|^#F#|^#O#|^#E#' | cut -d'#' -f3-
+}
+
+# show the readme
+cd2ogg_readme() {
+  grep '#' $0 | egrep '^#R#|^#S#' | cut -d'#' -f3-
+}
+
+cd2ogg_spec() {
+ grep '#' $0 | egrep '^#P#' | cut -d'#' -f3- | sed -e s/'^ '/''/ -e s/'VERSION'/"$cd2ogg_ver"/ > cd2ogg.spec
+}
+
+cd2ogg_man() {
+ grep '#' $0 | egrep '^#D#' | cut -d'#' -f3- | sed -e s/'^ '/''/ -e s/'VERSION'/"$cd2ogg_ver"/ -e s/'LONGDATE'/"$(date +"%d %b %y")"/g -e s/'YEAR'/"$(date +%Y)"/ | gzip > cd2ogg.1.gz
+}
+
+# if something's considered a major option, don't run it with another major option
+# ie : rip an entire CD and rip a single track at the same time
+major_opt() {
+ [ "$major_opt" ] && c_echo "$(c_error) ERROR : two conflicting options supplied on command line, exiting!" && cd2ogg_exit 1
+ major_opt=true
+}
+
+unsupported_option() {
+ read -p "this release of cd2ogg does not support this option
+
+please press any key to exit"
+}
+
+manual_info() {
+ manual_info="true"
+
+ [ "$opt_artist" ] && cd_artist="$opt_artist"
+ [ "$opt_genre" ] && cd_genre="$opt_genre"
+ [ "$opt_name" ] && cd_name="$opt_name"
+ [ "$opt_year" ] && cd_year="$opt_year"
+
+ while [ ! "$cd_artist" ]; do
+  read -p " $(c_qst) Album Artist: " cd_artist
+ done
+
+ while [ ! "$cd_name" ]; do
+  read -p " $(c_qst) Album Name: " cd_name
+ done
+
+ [ ! "$cd_genre" ] && read -p " $(c_qst) Album Genre: " cd_genre
+ [ ! "$cd_year" ] && read -p " $(c_qst) Album Year: " cd_year
+
+ summary_cd_genre="$cd_genre"
+ [ ! "$summary_cd_genre" ] && summary_cd_genre=rock
+
+ echo "200 $summary_cd_genre $discid_short $cd_artist / $cd_name" > $cddb_title
+
+ echo "DISCID=$discid_short
+DTITLE=$cd_artist / $cd_name
+DYEAR=$cd_year
+DGENRE=$cd_genre" > $cddb_verbose
+
+ current_track=1
+
+ echo
+
+ while [ $current_track -le $cd_trackcount ]; do
+  track_title=""
+  while [ ! "$track_title" ]; do
+   read -p " $(c_qst) Track #$current_track: " track_title
+  done
+
+  echo "TTITLE$[ $current_track - 1 ]=$track_title" >> $cddb_verbose
+  current_track=$[ $current_track + 1 ]
+ done
+}
+
+##############################################################################
+# functions that deal with CD track information
+##############################################################################
+
+# get the freedb data
+get_cd_info() {
+ workdir
+
+ [ "$(check_for_cd)" ] || {
+  c_echo "$(c_error) ERROR : no CD in tray"
+  cd2ogg_exit 1
+ }
+
+ # get the cd-discid info
+ cn_echo "$(c_notice) Grabbing CD fingerprint..."
+ discid=$(cd-discid $cdrom)
+ discid_short=$(echo $discid | cut -d' ' -f1)
+ discid_curl=$(cd-discid $cdrom | sed s/' '/'%20'/g)
+ # log what CD we're doing
+ touch ~/.cd2ogg/cd2ogg_history
+ grep -q "$discid" ~/.cd2ogg/cd2ogg_history || echo "$discid" >> ~/.cd2ogg/cd2ogg_history
+ c_echo " done."
+ c_echo
+
+ # how many tracks are we working with
+ cd_trackcount=$(echo $discid | cut -d' ' -f2)
+
+ # grab the track length for each track
+ track_offsets=$(echo $discid | cut -d' ' -f3-)
+
+ ontrack=0
+ sofar_seconds=0
+
+ last_offset=''
+
+ for track_offset in $track_offsets ; do
+  if [ "$last_offset" ]; then
+   ontrack=$[ $ontrack + 1 ]
+   # ensure we're not on the last track which gets different math
+   if [ "$ontrack" != "$cd_trackcount" ]; then
+    # subtract the two offsets involved with this track and divide by 75 to calculate seconds
+    track_seconds=$[ ($track_offset - $last_offset ) / 75 ]
+    # we need floating point precision to get a good estimate on the length of the last track
+    float_track_seconds=$( echo "scale=4 ; ($track_offset - $last_offset) / 75" | bc )
+    # add up the so-far seconds so we can do the math on the last track
+    sofar_seconds=$( echo "scale=4 ; $sofar_seconds + $float_track_seconds" | bc )
+   else
+    # we're on the last track, so do the math for the seconds differently
+    # the -1 at the end is to fix most rounding errors
+    track_seconds=$[ $track_offset - $( echo $sofar_seconds | cut -d'.' -f1 ) - ( $first_offset / 75 ) - 1 ]
+   fi
+
+   # how many minutes long is this track
+   track_minutes=$[ $track_seconds / 60 ]
+   # how many additional seconds long is this track
+   track_seconds=$[ $track_seconds - ( $track_minutes * 60 ) ]
+
+   # add a padding 0 if needed
+   [ "$track_seconds" -lt 10 ] && track_seconds=0$track_seconds
+
+   # add this info to our track_times file
+   echo "$ontrack $track_minutes:$track_seconds" >> $workdir/track_times
+  else
+   # since this is the first track, we need to know the offset for the last track math
+   first_offset=$track_offset
+  fi
+
+  # we need this for the math on tracks
+  last_offset=$track_offset
+ done
+
+ cn_echo "$(c_notice) Querying $cddb_server for CD information..."
+
+ # query the cddb server for the CD summary
+ curl -s "http://$cddb_server/$cddb_cgi?cmd=cddb+query+$discid_curl&hello=$whoami+$hostname+cd2ogg+$cd2ogg_ver&proto=5" | tr -d '\15\32' > $cddb_title
+
+ # strip any ^M characters, or otherwise
+ summary=$(cat $cddb_title)
+
+ # see if there are multiple cds that have the same signature
+ status=$(echo $summary | cut -d' ' -f1)
+
+ if [ ! "$cd2ogg_quiet" ]; then
+  if [ "$status" = "210" -a ! "$auto_only" ]; then
+   echo
+   echo
+   echo "$(c_error) Multiple matches found, please select one."
+   echo
+   choices=$(egrep -v '^210 |^\.' $cddb_title)
+   echo "$choices" | while read line; do count=$[ $count + 1 ]; echo "$(c_notice) $count : $line"; done
+   echo
+   read -p "$(c_qst) Please choose a disc: " choice
+   summary="200 $(echo "$choices" | head -$choice | tail -1)"
+  elif [ "$status" = "211" -a ! "$auto_only" ]; then
+   echo
+   echo
+   echo "$(c_error) Inexact match found, please verify CD."
+
+   echo
+   choices=$(egrep -v '^211 |^\.' $cddb_title)
+   echo "$choices" | while read line; do count=$[ $count + 1 ]; echo "$(c_notice) $count : $line"; done
+   echo
+   read -p "$(c_qst) Please choose a disc: " choice
+   summary="200 $(echo "$choices" | head -$choice | tail -1)"
+  elif [ "$status" = "202" -a ! "$auto_only" ]; then
+   echo " failure!"
+   echo
+   manual_info 
+   summary=$(cat $cddb_title)
+  elif [ "$status" != "200" -a ! "$auto_only" ]; then
+   echo
+   echo
+   echo "$(c_error) ERROR : An unexpected error occured during freedb lookup."
+   [ "$mass_rip" = "true" ] || cd2ogg_exit 1
+  else
+   echo " done."
+  fi
+ fi
+
+ # what's the genre of the cd
+ cd_genre=$(echo $summary | cut -d' ' -f2)
+
+ # if we're encoding as mp3 we must verify that the genre supplied is a valid lame genre otherwise we must set it to something generic
+ if [ "$encoding" = "mp3" -a ! "$no_genre" ]; then
+  lame --genre-list | sed -e s/'^ '/''/ -e s/'^ '/''/ | cut -d' ' -f2- | egrep -qi "^$cd_genre$" || cd_genre='pop'
+ fi
+
+ # what's the artist-album information
+ cd_title=$(echo $summary | cut -d' ' -f4- | sed -e s^' / '^'-'^ -e s/'"'/"''"/g)
+ cd_artist=$(echo $cd_title | cut -d'-' -f1 | sed -e s/'"'/"''"/g)
+ cd_name=$(echo $summary | cut -d'/' -f2- | cut -d' ' -f2- | sed -e s/'"'/"''"/g)
+
+ # what's the crc for this album
+ cd_crc=$(echo $summary | cut -d' ' -f3)
+
+ # get the detailed disc information (track names/etc)
+ [ ! "$manual_info" ] && curl -s $cddb_verbose "http://$cddb_server/$cddb_cgi?cmd=cddb+read+$cd_genre+$cd_crc&hello=$whoami+$hostname+cd2ogg+$cd2ogg_ver&proto=5" | tr -d '\15\32' > $cddb_verbose
+
+ # the year our CD came out
+ cd_year=$(grep '^DYEAR=' $cddb_verbose | cut -d'=' -f2)
+
+ # alternate album information, if supplied on the command line
+ [ "$opt_artist" ] && cd_artist="$opt_artist"
+ [ "$opt_genre" ] && cd_genre="$opt_genre"
+ [ "$opt_name" ] && cd_name="$opt_name"
+ [ "$opt_year" ] && cd_year=$opt_year
+ [ "$no_genre" ] && cd_genre=''
+
+ c_echo
+ c_echo " $(c_notice) CD information :"
+ c_echo "  $(c_notice) Artist : $cd_artist"
+ c_echo "  $(c_notice) Album  : $cd_name"
+ c_echo "  $(c_notice) Tracks : $cd_trackcount"
+ [ "$cd_year" ] && c_echo "  $(c_notice) Year   : $cd_year"
+ [ "$cd_genre" ] && c_echo "  $(c_notice) Genre  : $cd_genre"
+
+ s_title "$cd_artist : $cd_name : $cd_year : $cd_trackcount tracks"
+
+ [ "$cd_list" ] && {
+  c_echo
+  c_echo "  $(c_notice) Track listing :"
+  cddb_track=0
+  while [ "$cddb_track" -le "$[ $cd_trackcount - 1 ]" ]; do
+   c_echo "   $(c_notice) $[ $cddb_track + 1 ]$([ $cddb_track -le 8 ] && echo -n " ") : $(grep "^TTITLE$cddb_track=" $cddb_verbose | cut -d'=' -f2 | tr -d '\r\n' | sed -e s/'"'/"''"/g)"
+   cddb_track=$[ $cddb_track + 1 ]
+  done
+
+ }
+}
+
+# replace the ARTIST ALBUM TNUM TNAME keywords, caps or spaces
+replace_info() {
+ # since & is a special character in sed, we need to replace it
+ cd_artist="$(echo "$cd_artist" | sed -e s/'\&'/'90jkl2wr90'/g -e s/'\.'/'098saflj23'/g -e s^'/'^'\\\\'^g)"
+ cd_name="$(echo "$cd_name" | sed -e s/'\&'/'90jkl2wr90'/g -e s/'\.'/'098saflj23'/g -e s^'/'^'\\\\'^g)"
+ track_name="$(echo "$track_name" | sed -e s/'\&'/'90jkl2wr90'/g -e s/'\.'/'098saflj23'/g -e s^'/'^'\\\\'^g)"
+
+ sed -e s/'ARTIST'/"$cd_artist"/g \
+  -e s/'ALBUM'/"$cd_name"/g \
+  -e s/'TNUM'/"$track_num_form"/g \
+  -e s/'TNAME'/"$track_name"/g \
+  -e s/'"'/"''"/g \
+  -e s/'90jkl2wr90'/'\&'/g \
+  -e s/'098saflj23'/'\.'/g \
+  | ([ "$remove_punct" ] && tr -d '\!\@\#\$\%\^\*\(\)\_\+\=\[\]\{\}\;\:\"\,\.\<\>\?\`\~'"'" | sed -e s/'&'/and/g || cat) \
+  | ([ "$replace_space" ] && sed -e s/' '/'_'/g  -e s/'_-_'/'-'/g -e s/'__'/'_'/g || cat) \
+  | ([ "$replace_caps" ] && tr '[:upper:]' '[:lower:]' || cat)
+
+ # place the & back into the name
+ cd_artist=$(echo "$cd_artist" | sed -e s/'90jkl2wr90'/'\&'/g -e s/'\.'/'098saflj23'/g)
+ cd_name=$(echo "$cd_name" | sed -e s/'90jkl2wr90'/'\&'/g -e s/'\.'/'098saflj23'/g)
+ track_name=$(echo "$track_name" | sed -e s/'90jkl2wr90'/'\&'/g -e s/'\.'/'098saflj23'/g)
+}
+
+##############################################################################
+# functions that deal with CD ripping
+##############################################################################
+
+cdparanoia_errors() {
+ egrep ' 6 | 3 ' | while read line
+  do
+   errcount=$[ $errcount + 1 ]
+   [ "$errcount" = "10" ] && c_echo "     $(c_error) ($(date +%r)) errors detected" && bler=bler
+   [ "$errcount" = "200" ] && c_echo "          ($(date +%r)) errors are moderately bad"
+   [ "$errcount" = "400" ] && c_echo "          ($(date +%r)) errors are seriously bad"
+   [ "$errcount" = "600" ] && c_echo "          ($(date +%r)) errors are incredibly bad"
+   [ "$errcount" = "800" ] && c_echo "          ($(date +%r)) you should think about skipping on this track"
+   [ "$errcount" = "4000" ] && c_echo "          ($(date +%r)) extreme volume of errors found, track probably useless"
+   [ "$errcount" = "10000" ] && c_echo "          ($(date +%r)) 10,000+ errors found on track"
+  done
+}
+
+# output the word "found" if we have a CD in the drive tray
+check_for_cd() {
+  [ "$(cd-discid $cdrom > /dev/null 2>&1 ; echo $?)" = "0" ] && echo "found"
+}
+
+mass_rip() {
+ while [ true ]; do
+  # is there a CD in the tray?
+  while [ -z "$(check_for_cd)" ]; do
+   if [ -z "$done_displayed" ]; then
+    eject $cdrom
+    c_echo
+    s_title "No CD inserted"
+    c_echo "$(c_error) ERROR : no CD insterted, please insert a CD or press ^C to exit"
+    done_displayed=root_down
+   fi
+   # sleep for 5 seconds if not
+   sleep 5
+  done
+  # rip the entire CD without encoding
+  just_rip=true
+  whole_cd
+  eject $cdrom
+  done_displayed=''
+ done
+}
+
+# this command rips the actual track and names it
+# (this is the ugliest part of the script, if i clean anything up in the future
+#  it'll be this ugly bastard)
+rip_track() {
+ track_count=$[ $track_count + 1 ]
+ # assign our track number to a variable for easy reading remove any leading 0
+ my_track_number=$(echo $1 | sed s/'^0'/''/)
+
+ # how cdparanoia should be called
+ cdparanoia="cdparanoia $disable_paranoia -q -d $cdrom -w $my_track_number"
+
+ # add a leading 0 if our track # is less than 10
+ if [ "$my_track_number" -lt "10" ]; then
+  track_num_form=0$my_track_number
+ else
+  track_num_form=$my_track_number
+ fi
+
+ # check to make sure that we weren't instructed to skip this track
+ if [ ! "$(echo $skip_tracks | grep -w $track_num_form)" ]; then
+  estart=$(date +%s)
+  # since cddb numbering starts at 0
+  cddb_track=$my_track_number
+  cddb_track=$[ $cddb_track - 1 ]
+
+  # what's the track name
+  track_name=$(grep "^TTITLE$cddb_track=" $cddb_verbose | cut -d'=' -f2 | tr -d '\r\n' | sed -e s/'"'/"''"/g)
+
+  [ "$cd_artist" = Various -o "$cd_artist" = various ] && {
+   track_artist="$(echo "$track_name" | cut -d'/' -f1 | sed s/' $'/''/)"
+   track_name="$(echo "$track_name" | cut -d'/' -f2- | sed s/'^ '/''/)"
+  } || {
+   track_artist="$cd_artist"
+  }
+
+  # what's our file name
+  enc_base="$(echo $file_name | replace_info)"
+
+  # where we put our final files
+  cd_storage="$(dirname "$enc_base")"
+
+  [ -d "$cd_storage" ] || mkdir -p "$cd_storage"
+
+  # some cddb queries give us extra information on album, put that in a text file
+  extd=$(echo -e $(grep ^EXTD= $cddb_verbose  | cut -d'=' -f2- | while read -r line ; do echo -nE "$line" ; done))
+  [ "$extd" ] && echo "$extd" > "$cd_storage/cd_info.txt"
+
+  # find out how long our track is
+  track_length=$(grep -w "^$my_track_number" $workdir/track_times | cut -d' ' -f2)
+
+  [ "$encoding" = "ogg" -o "$encoding" = "flogg" ] && enc_ext="ogg"
+  [ "$encoding" = "flac" ] && enc_ext="flac"
+  [ "$encoding" = "mp3" ] && enc_ext="mp3"
+
+  wav_file="$enc_base.wav"
+  enc_file="$enc_base.$enc_ext"
+  m3u_file="$(dirname "$enc_file")/$(echo "ARTIST - ALBUM" | replace_info).m3u"
+
+  c_echo
+  c_echo "   $(c_notice) Track $my_track_number of $cd_trackcount : $track_name ($track_length)"
+
+  # make and organize playlist
+  touch "$m3u_file"
+  playlist="$((cat "$m3u_file" ; basename "$enc_file") | sort | uniq)"
+  echo "$playlist" > "$m3u_file"
+
+  # see if we're just mass-ripping cds to wav files
+  if [ "$just_rip" ]; then
+   c_echo "    $(c_notice) Copying track to hard drive"
+   # extract the track to a .wav
+   $cdparanoia "$wav_file" 2>&1 | egrep ' 6 | 3 ' | cdparanoia_errors
+
+   # what's our mass encoding script going to be called?
+   [ -d $workdir/enc_scripts ] || mkdir -p $workdir/enc_scripts
+   mass_script="$enc_scripts/$(echo "$cd_artist-$cd_name-$track_num_form-$track_name" | tr -d ',' | tr '[:upper:]' '[:lower:]' | tr -d '[:punct:]' | sed -e s^'/'^'-'^g -e s/' '/'_'/g)"
+   n_mass_script="$enc_scripts/$(echo "$cd_artist-$cd_name-00-normalize tracks" | tr -d ',' | tr '[:upper:]' '[:lower:]' | tr -d '[:punct:]' | sed -e s^'/'^'-'^g -e s/' '/'_'/g)"
+   t_mass_script="$workdir/enc_scripts/$(echo "$cd_artist-$cd_name-$track_num_form-$track_name" | tr -d ',' | tr '[:upper:]' '[:lower:]' | tr -d '[:punct:]' | sed -e s^'/'^'-'^g -e s/' '/'_'/g)"
+   t_n_mass_script="$workdir/enc_scripts/$(echo "$cd_artist-$cd_name-00-normalize tracks" | tr -d ',' | tr '[:upper:]' '[:lower:]' | tr -d '[:punct:]' | sed -e s^'/'^'-'^g -e s/' '/'_'/g)"
+
+   # make sure we have somewhere to put the script
+   [ ! -d $enc_scripts ] && mkdir -p $enc_scripts
+
+   {
+    # explicitly declare our shell to prevent 'cannot execute binary file' errors with mass encoding scripts
+    echo '#!/bin/bash'
+    echo "wav_file=\"$wav_file\""
+    echo "enc_file=\"$enc_file\""
+    echo "[ \"\$cd2ogg_quiet\" ] || echo \"[!] Encoding : $track_artist : $cd_name : $my_track_number : $track_name ($track_length)\""
+
+    [ "$encoding" = "mp3" ] &&
+     echo "lame $enc_options  --tt \"$track_name\" --ta \"$track_artist\" --tl \"$cd_name\" --ty \"$cd_year\" --tn \"$my_track_number\" --tg \"$cd_genre\" \"\$wav_file\" \"\$enc_file\""
+
+    [ "$encoding" = "ogg" ] &&
+     echo "oggenc $enc_options -d \"$cd_year\" -G \"$cd_genre\" -t \"$track_name\" -N $my_track_number -l \"$cd_name\" -a \"$track_artist\" \"\$wav_file\""
+
+    [ "$encoding" = "flac" -o "$encoding" = "flogg" ] &&
+     echo "flac $enc_options -T title=\"$track_name\" -T artist=\"$track_artist\" -T genre=\"$cd_genre\" -T date=\"$cd_year\" -T album=\"$cd_name\" -T tracknumber=\"$my_track_number\" \"\$wav_file\""
+
+    [ ! "$keep_wav" ] && echo "[ "\$?" = "0" ] && rm -f \"$wav_file\""
+
+    echo "[ "\$?" = "0" ] && rm -f \"$mass_script\""
+   } > "$t_mass_script"
+
+   [ "$normalize" -a ! -f "$t_n_mass_script" ] && {
+    echo -e "echo \"[!] Normalizing $track_artist : $cd_name\"\n$normalize_bin -q \"$cd_storage/\"*.wav\nrm \"$n_mass_script\"" >> $t_n_mass_script
+    chmod +x "$t_n_mass_script"
+   }
+
+
+   chmod +x "$t_mass_script"
+
+  else
+
+   errcount=0
+
+   if [ "$normalize" ]; then
+    c_echo "    $(c_notice) Copying track to hard drive"
+    $cdparanoia "$wav_file" 2>&1 | cdparanoia_errors
+    c_echo "    $(c_notice) Normalizing track"
+    $normalize_bin -q "$wav_file"
+    c_echo "    $(c_notice) Encoding track to $encoding_verbose"
+
+    [ "$encoding" = "mp3" ] &&
+     lame $enc_options --tt "$track_name" --ta "$track_artist" --tl "$cd_name" --ty "$cd_year" --tn "$my_track_number" --tg "$cd_genre" "$wav_file" "$enc_file"
+
+    [ "$encoding" = "ogg" ] &&
+     oggenc $enc_options -d "$cd_year" -G "$cd_genre" -t "$track_name" -N $my_track_number -l "$cd_name" -a "$track_artist" "$wav_file" -o "$enc_file"
+
+    [ "$encoding" = "flac" -o "$encoding" = "flogg" ] &&
+     flac -T title="$track_name" -T artist="$track_artist" -T genre="$cd_genre" -T date="$cd_year" -T album="$cd_name" -T tracknumber="$my_track_number" "$wav_file" -o "$enc_file"
+
+    [ -z "$keep_wav" ] && c_echo "     $(c_notice) Removing source wav" && rm -f "$wav_file"
+
+   else
+
+    c_echo "    $(c_notice) Encoding directly from CD to $encoding_verbose"
+
+    [ "$encoding" = "mp3" ] &&
+     ($cdparanoia - | lame $enc_options --tt "$track_name" --ta "$track_artist" --tl "$cd_name" --ty "$cd_year" --tn "$my_track_number" --tg "$cd_genre" - "$enc_file") 2>&1 | cdparanoia_errors
+
+    [ "$encoding" = "ogg" ] &&
+     ($cdparanoia - | oggenc $enc_options -d "$cd_year" -G "$cd_genre" -t "$track_name" -N $my_track_number -l "$cd_name" -a "$track_artist" -o "$enc_file" -) 2>&1 | cdparanoia_errors
+
+    [ "$encoding" = "flac" -o "$encoding" = "flogg" ] &&
+     ($cdparanoia - | flac $enc_options -T title="$track_name" -T artist="$track_artist" -T genre="$cd_genre" -T date="$cd_year" -T album="$cd_name" -T tracknumber="$my_track_number" -o "$enc_file" -) 2>&1 | cdparanoia_errors
+
+   fi
+
+  fi
+  # display how long it took to rip the cd
+  eend=$(date +%s)
+  emin=$[ ($eend - $estart) / 60 ]
+  esec=$[ ($eend - $estart) - ($emin * 60) ]
+  [ $esec -lt "10" ] && esec="0$esec"
+  c_echo "    $(c_notice) Completed track in $emin:$esec"
+ fi
+}
+
+# this is what we do to rip a single track
+single_track() {
+ get_cd_info
+ for single_track_num in $single_track_nums ; do
+  rip_track $single_track_num
+ done
+}
+
+# used to rip an entire cd
+whole_cd() {
+ get_cd_info
+ # what track we're currently going to rip
+ track_number=1
+ # go through each track and rip it
+ while [ "$track_number" -le "$cd_trackcount" ]; do
+  rip_track $track_number
+
+  # and we do some math
+  track_number=$[ $track_number + 1 ]
+ done
+
+ [ "$just_rip" ] && mv $workdir/enc_scripts/* "$enc_scripts/"
+
+ alert
+}
+
+##############################################################################
+# working with settings
+##############################################################################
+
+save_config() {
+
+ set_defaults
+
+ # write our configuration to ~/.cd2ogg/cd2ogg_config
+ echo "cdrom=\"$cdrom\"
+bitrate=\"$bitrate\"
+cddb_server=\"$cddb_server\"
+cver=\"$cd2ogg_ver\"
+dir_format=\"$dir_format\"
+disable_paranoia=\"$disable_paranoia\"
+eject_cdrom=\"$eject_cdrom\"
+encoding=\"$encoding\"
+enc_scripts=\"$enc_scripts\"
+file_name=\"$file_name\"
+fixed_bitrate=\"$fixed_bitrate\"
+http_proxy=\"$http_proxy\"
+keep_wav=\"$keep_wav\"
+normalize=\"$normalize\"
+enc_downmix=\"$enc_downmix\"
+replace_space=\"$replace_space\"
+replace_caps=\"$replace_caps\"
+replace_punct=\"$replace_punct\"
+" > $save_dir/cd2ogg_config
+
+ c_echo "$(c_notice) Settings saved"
+
+}
+
+set_defaults() {
+ # ensure the critical variables are populated
+ [ -z "$cdrom" ] && cdrom=/dev/cdrom
+ [ -z "$encoding" ] && encoding=ogg
+ [ -z "$bitrate" ] && bitrate=192
+ [ -z "$file_name" ] && file_name="$HOME/music/ARTIST/ALBUM/ARTIST - ALBUM - TNUM - TNAME"
+ [ -z "$enc_scripts" ] && enc_scripts=~/cd2ogg_scripts
+ [ -z "$cddb_server" ] && cddb_server=us.freedb.org
+}
+
+show_settings() {
+ [ "$disable_paranoia" ] && paranoia="disabled" || paranoia="enabled"
+
+ c_echo "  encode audio as             : $encoding_verbose"
+ c_echo "  save files as               : $file_name"
+ c_echo "  cdrom drive                 : $cdrom"
+ c_echo "  bitrate                     : $bitrate"
+ c_echo "  save encoding scripts to    : $enc_scripts"
+ c_echo "  eject cdrom upon completion : $eject_cdrom"
+ c_echo "  fixed bitrate               : $fixed_bitrate"
+ c_echo "  lo-fi mono encoding         : $enc_downmix"
+ c_echo "  normalize tracks            : $normalize"
+ c_echo "  paranoid ripping            : $paranoia"
+ c_echo "  proxy server                : $http_proxy"
+ c_echo "  cddb server                 : $cddb_server"
+ c_echo "  replace caps and spaces     : $replace_space"
+ c_echo "  keep wav files              : $keep_wav"
+}
+
+# sets the window title if applicable
+s_title() {
+ [ ! "$cd2ogg_quiet" ] && echo "$TERM" | egrep -q 'screen|xterm' && echo -ne "\033]0;cd2ogg v$cd2ogg_ver :: $1\007"
+}
+
+show_keys() {
+ c_echo
+ c_echo "$(c_notice) Available keywords : ARTIST ALBUM TNUM TNAME"
+ c_echo
+}
+
+# where we keep our temporary files
+workdir() {
+ mkdir -p $workdir
+}
+
+###############################################################################
+# actions
+###############################################################################
+
+# set our default values
+set_defaults
+
+# ensure that we have a $save_dir directory
+[ -d $save_dir ] || mkdir -p $save_dir
+
+# if we have an old config file, move it over
+[ -f ~/.cd2oggrc -a ! -f $save_dir/cd2ogg_config ] && mv ~/.cd2oggrc $save_dir/cd2ogg_config
+
+# if we have an old history file, move it over
+[ -f ~/.cd2ogg_history -a ! -f $save_dir/cd2ogg_history ] && mv ~/.cd2ogg_history $save_dir/cd2ogg_history
+
+# who am i?
+whoami=$(id -un)
+
+# where am i?
+hostname=$(hostname)
+
+# script version
+cd2ogg_ver=$(grep '^#M#' $0 | cut -d' ' -f3)
+
+# load config if it exists
+[ -f ~/.cd2ogg/cd2ogg_config ] && source ~/.cd2ogg/cd2ogg_config
+
+# if $http_proxy is set, then export it
+[ "$http_proxy" ] && export http_proxy="$http_proxy"
+
+# make getopts quiet on errors
+OPTERR=0
+
+# go through options passed and ensure that there are no conflicts and set options
+# flags left for use : fiouxz
+
+while getopts a:b:c:d:eg:hjklmnp:q:rs:t:vwy:EGHJKLM:NRT:VW0-: opt
+do
+ [ "$opt" = "a" ] && opt_artist="$OPTARG"
+ [ "$opt" = "b" ] && bitrate="$OPTARG"
+ [ "$opt" = "c" ] && opt_name="$OPTARG"
+ [ "$opt" = "d" ] && custom_cd="$OPTARG" && [ -b "$OPTARG" ] && cdrom="$OPTARG"
+ [ "$opt" = "e" ] && whole_cd="true" && major_opt
+ [ "$opt" = "E" ] && just_rip="true" && major_opt
+ [ "$opt" = "g" ] && opt_genre="$OPTARG"
+ [ "$opt" = "G" ] && no_genre=true
+ [ "$opt" = "h" ] && cd2ogg_help="true" && major_opt
+ [ "$opt" = "H" ] && cd2ogg_help="verbose" && major_opt
+ [ "$opt" = "j" ] && eject_cdrom="true"
+ [ "$opt" = "J" ] && eject_cdrom=""
+ [ "$opt" = "k" ] && fixed_bitrate="true"
+ [ "$opt" = "K" ] && fixed_bitrate=""
+ [ "$opt" = "l" ] && enc_downmix="true"
+ [ "$opt" = "L" ] && enc_downmix=""
+ [ "$opt" = "m" ] && mass_rip="true" && major_opt
+ [ "$opt" = "M" ] && enc_scripts="$OPTARG"
+ [ "$opt" = "n" ] && normalize="true"
+ [ "$opt" = "N" ] && normalize=""
+ [ "$opt" = "p" ] && http_proxy="$OPTARG"
+ [ "$opt" = "P" ] && http_proxy=""
+ [ "$opt" = "q" ] && cddb_server="$OPTARG"
+ [ "$opt" = "r" -a "$replace_space" = "true" ] && remove_punct="true"
+ [ "$opt" = "r" ] && replace_space="true" && replace_caps="true"
+ [ "$opt" = "R" ] && replace_space="" && replace_caps=""
+ [ "$opt" = "s" ] && file_name="$OPTARG"
+ [ "$opt" = "t" ] && single_track="true" && single_track_nums="$OPTARG" && major_opt
+ [ "$opt" = "T" ] && skip_tracks="$OPTARG"
+ [ "$opt" = "v" ] && disable_paranoia=""
+ [ "$opt" = "V" ] && disable_paranoia="-Z"
+ [ "$opt" = "w" ] && keep_wav="true"
+ [ "$opt" = "W" ] && keep_wav=""
+ [ "$opt" = "y" ] && opt_year="$OPTARG"
+
+ if [ "$opt" = "-" ]; then
+  [ "$OPTARG" = "changelog" ] && cd2ogg_changelog="true" && major_opt
+  [ "$OPTARG" = "daemon" ] && cd2ogg_quiet=true && batch_encode=true && cycle_batch=true && major_opt
+  [ "$OPTARG" = "enc" ] && batch_encode="true" && major_opt
+  [ "$OPTARG" = "flac" ] && encoding="flac"
+  [ "$OPTARG" = "flogg" ] && encoding="flogg"
+  [ "$OPTARG" = "genfiles" ] && cd2ogg_genfiles && cd2ogg_exit 0
+  [ "$OPTARG" = "gensite" ] && cd2ogg_gensite && cd2ogg_exit 0
+  [ "$OPTARG" = "info" ] && show_settings="true" && major_opt
+  [ "$OPTARG" = "license" ] && cd2ogg_gpl="true" && major_opt
+  [ "$OPTARG" = "list" ] && cd_list="true" && major_opt
+  [ "$OPTARG" = "mp3" ] && encoding="mp3"
+  [ "$OPTARG" = "ogg" ] && encoding="ogg"
+  [ "$OPTARG" = "quiet" ] && export cd2ogg_quiet="true"
+  [ "$OPTARG" = "readme" ] && cd2ogg_readme="true" && major_opt
+  [ "$OPTARG" = "spec" ] && cd2ogg_spec="true" && major_opt
+  [ "$OPTARG" = "man" ] && cd2ogg_man="true" && major_opt
+  [ "$OPTARG" = "save" ] && save_config="true"
+  [ "$OPTARG" = "version" ] && cd2ogg_version="true" && major_opt
+  [ "$OPTARG" = "wait_on_exit" ] && wait_on_exit="true"
+  [ "$OPTARG" = "xterm" ] && unsupported="true" && major_opt
+  [ "$OPTARG" = "inter" ] && unsupported="true" && major_opt
+ fi
+done
+
+
+
+cd2ogg_splash
+
+# figure out where we are and how we should behave
+if [ -f /etc/fedora-release ]; then
+ normalize_bin="normalize"
+elif [ -f /etc/redhat-release ]; then
+ normalize_bin="normalize"
+elif [ -f /etc/debian_version ]; then
+ normalize_bin="normalize-audio"
+else
+ c_echo "$(c_notice) Unsupported o/s detected, this should work but don't hold your breath"
+ c_echo
+fi
+
+# check for the requirements for our actions
+[ "$normalize" ] && requirements="$requirements $normalize_bin"
+[ "$encoding" = "mp3" ] && requirements="$requirements lame"
+[ "$encoding" = "ogg" ] && requirements="$requirements oggenc"
+[ "$encoding" = "flac" -o "$encoding" = "flogg" ] && requirements="$requirements flac"
+
+[ "$encoding" = "mp3" ] && encoding_verbose="MP3"
+[ "$encoding" = "ogg" ] && encoding_verbose="Ogg/Vorbis"
+[ "$encoding" = "flac" ] && encoding_verbose="FLAC"
+[ "$encoding" = "flogg" ] && encoding_verbose="FLAC with Ogg transport layer"
+
+for i in $requirements ; do
+ [ "$(which $i > /dev/null 2>&1 ; echo $?)" != "0" ] && badreq=true && c_echo "$(c_error) ERROR : requirement $i not found in \$PATH"
+done
+
+# figure out if we need to pad any skiped track numbers
+if [ "$skip_tracks" ]; then
+ for skip_track in $skip_tracks ; do
+  [ "$skip_track" -lt "10" ] && skip_track="0$skip_track"
+  st="$st $skip_track"
+ done
+ skip_tracks="$st"
+fi
+
+# if there were missing requirements, exit
+[ "$badreq" = "true" ] && cd2ogg_exit 1
+
+# if a custom cdrom was specified, but it's not a block device then let the user know
+[ "$custom_cd" ] && [ ! -b "$custom_cd" ] && c_echo "$(c_error) The cdrom device specified $custom_cd is not a valid block device, ignoring" && c_echo
+
+if [ "$encoding" = "mp3" ]; then
+ enc_options="$enc_options --quiet -h -b $bitrate"
+ [ "$downmix_set" = "true" ] && enc_options="$enc_options -m s -a"
+ [ "$managed_set" != "true" ] && enc_options="$enc_options --vbr-new"
+elif [ "$encoding" = "ogg" ]; then
+ enc_options="-Q $enc_options -b $bitrate"
+ [ "$downmix_set" = "true" ] && enc_options="$enc_options --downmix"
+ [ "$managed_set" = "true" ] && enc_options="$enc_options --managed -m $bitrate -M $bitrate"
+elif [ "$encoding" = "flac" -o "flogg" ]; then
+ enc_options="-f -s --best"
+ [ "$encoding" = "flogg" ] && enc_options="$enc_options --ogg"
+ [ "$downmix_set" = "true" ] && enc_options="$enc_options -m m"
+fi
+
+[ "$opt_artist" -o "$opt_name" -o "$opt_year" ] && [ "$mass_rip" ] && c_echo "$(c_error) You can NOT supply a custom artist, album name or date for mass ripping" && cd2ogg_exit 1
+
+# perform the appropriate action
+[ "$cd2ogg_changelog" ] && cd2ogg_changelog && cd2ogg_exit 0
+[ "$cd2ogg_gpl" ] && cd2ogg_gpl && cd2ogg_exit 0
+[ "$cd2ogg_help" = "true" ] && cd2ogg_help && cd2ogg_exit 255
+[ "$cd2ogg_help" = "verbose" ] && cd2ogg_help_verbose && cd2ogg_exit 255
+[ "$cd2ogg_readme" ] && cd2ogg_readme && cd2ogg_exit 0
+[ "$cd2ogg_spec" ] && cd2ogg_spec && cd2ogg_exit 0
+[ "$cd2ogg_man" ] && cd2ogg_man && cd2ogg_exit 0
+[ "$cd2ogg_version" ] && cd2ogg_exit 0
+
+[ "$unsupported" ] && unsupported_option && cd2ogg_exit 0
+
+[ "$batch_encode" ] && batch_encode && cd2ogg_exit 0
+[ "$cd2ogg_xterm" ] && cd2ogg_xterm
+[ "$just_rip" ] && whole_cd
+[ "$mass_rip" ] && mass_rip
+[ "$show_settings" ] && show_settings && cd2ogg_exit 0
+[ "$single_track" ] && single_track
+[ "$whole_cd" ] && whole_cd
+[ "$save_config" ] && save_config
+
+[ "$eject_cdrom" ] && eject $cdrom
+
+[ "$cd_list" ] && get_cd_info && cd2ogg_exit 0
+
+# if a major option wasn't chosen, then display the help
+[ -z "$major_opt" ] && [ ! "$save_config" ] && cd2ogg_help
+
+# do the math as far as how long it took us to complete our actions
+send=$(date +%s)
+emin=$[ ($send - $sstart) / 60 ]
+esec=$[ ($send - $sstart) - ($emin * 60) ]
+
+# should we prepend a 0 to pad the seconds
+[ $esec -lt "10" ] && esec="0$esec"
+
+# give a summary
+[ "$track_count" -ge "2" ] && pluralize=s
+[ "$major_opt" ] && c_echo && c_echo "$(c_notice) Completed $track_count track$pluralize in $emin:$esec"
+
+cd2ogg_exit 0
