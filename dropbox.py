@@ -994,7 +994,7 @@ This is an alias for filestatus -l
 
 @command
 @requires_dropbox_running
-def rl(args):
+def puburl(args):
     u"""get public url of a file in your dropbox
 dropbox puburl FILE
 
